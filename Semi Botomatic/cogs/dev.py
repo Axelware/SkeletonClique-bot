@@ -13,7 +13,7 @@ from utilities import context
 
 class Dev(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, *, bot: SemiBotomatic) -> None:
         self.bot = bot
 
     @commands.is_owner()
@@ -77,5 +77,5 @@ class Dev(commands.Cog):
 
 
 def setup(bot: SemiBotomatic) -> None:
-    bot.add_cog(Dev(bot))
+    bot.add_cog(Dev(bot=bot))
 
