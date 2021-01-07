@@ -58,3 +58,13 @@ class Context(commands.Context):
 
         await paginator.stop()
         return kwargs.get('entries')[response]
+
+    async def try_dm(self, **kwargs) -> Optional[discord.Message]:
+
+        try:
+            return await self.author.send(**kwargs)
+        except discord.Forbidden:
+            try:
+                return await self.channel.send(**kwargs)
+            except discord.Forbidden:
+                return None
