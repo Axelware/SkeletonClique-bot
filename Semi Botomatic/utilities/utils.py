@@ -11,12 +11,8 @@ import mystbin
 __log__ = logging.getLogger(__name__)
 
 
-def convert_datetime(*, datetime: Union[pendulum.datetime, dt.datetime]) -> pendulum.datetime:
-
-    if isinstance(datetime, dt.datetime):
-        datetime = pendulum.instance(datetime)
-
-    return datetime
+def convert_datetime(*, datetime: Union[dt.datetime, pendulum.datetime]) -> pendulum.datetime:
+    return pendulum.instance(datetime) if isinstance(datetime, dt.datetime) else datetime
 
 
 def format_seconds(*, seconds: int, friendly: bool = False) -> str:
@@ -33,16 +29,17 @@ def format_seconds(*, seconds: int, friendly: bool = False) -> str:
     return f'{f"{days:02d}:" if not days == 0 else ""}{f"{hours:02d}:" if not hours == 0 or not days == 0 else ""}{minutes:02d}:{seconds:02d}'
 
 
-def format_datetime(*, datetime: Union[pendulum.datetime, dt.datetime], seconds: bool = False) -> str:
+def format_datetime(*, datetime: Union[dt.datetime, pendulum.datetime], seconds: bool = False) -> str:
     datetime = convert_datetime(datetime=datetime)
-    return datetime.format(f'dddd Do [of] MMMM YYYY [at] HH:mm{":ss" if seconds else ""} A (zz{"ZZ" if datetime.timezone != "UTC" else ""})')
+    return datetime.format(f'dddd MMMM do YYYY [at] hh:mm{":ss" if seconds else ""} A zz{"ZZ" if datetime.timezone.name != "UTC" else ""}')
 
 
-def format_date(*, datetime: Union[pendulum.datetime, dt.datetime]) -> str:
-    return convert_datetime(datetime=datetime).format(f'dddd Do [of] MMMM YYYY')
+def format_date(*, datetime: Union[dt.datetime, pendulum.datetime]) -> str:
+    return convert_datetime(datetime=datetime).format(f'dddd MMMM do YYYY')
 
 
-def format_difference(*, datetime: Union[pendulum.datetime, dt.datetime], suppress=None) -> str:
+def format_difference(*, datetime: Union[dt.datetime, pendulum.datetime], suppress=None) -> str:
+
     if suppress is None:
         suppress = ['seconds']
 
