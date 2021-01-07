@@ -33,8 +33,8 @@ class SemiBotomatic(commands.Bot):
 
         self.ERROR_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.ERROR_WEBHOOK)
         self.DMS_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.DM_WEBHOOK)
-        self.MESSAGE_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.MESSAGE_LOG_WEBHOOK)
-        self.LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.LOG_WEBHOOK)
+        self.COMMON_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.COMMON_LOG_WEBHOOK)
+        self.IMPORTANT_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.IMPORTANT_LOG_WEBHOOK)
 
         self.first_ready: bool = True
 

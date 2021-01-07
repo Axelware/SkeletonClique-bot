@@ -205,7 +205,7 @@ class Events(commands.Cog):
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info, inline=False)
 
-        await self.bot.MESSAGE_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message) -> None:
@@ -221,14 +221,14 @@ class Events(commands.Cog):
 
         avatar = utils.person_avatar(person=ctx.author)
 
-        await self.bot.MESSAGE_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=avatar)
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=avatar)
 
         if message.attachments:
 
             for attachment in message.attachments:
                 try:
                     file = await attachment.to_file(use_cached=True)
-                    await self.bot.MESSAGE_LOG.send(content=f'Deleted attachments in message `{message.id}`: ', file=file, username=f'{ctx.author}', avatar_url=avatar)
+                    await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`: ', file=file, username=f'{ctx.author}', avatar_url=avatar)
                 except discord.HTTPException or discord.Forbidden or discord.NotFound:
                     continue
 
