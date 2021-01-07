@@ -20,7 +20,7 @@ class Fun(commands.Cog):
         self.RATINGS = [
             '-100, I don\'t ever want to hear that name again!',
             '-10 :nauseated_face:',
-            '0.'
+            '0.',
             '1.',
             '2, who even is that?? never heard of them...',
             '3.',

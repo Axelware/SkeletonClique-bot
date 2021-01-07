@@ -82,8 +82,7 @@ class Events(commands.Cog):
 
         error = getattr(error, 'original', error)
 
-        __log__.error(f'[COMMANDS] Error while running command. Name: {ctx.command.qualified_name} | Error: {type(error)} | Invoker: {ctx.author} | '
-                      f'Channel: {ctx.channel} ({ctx.channel.id})')
+        __log__.error(f'[COMMANDS] Error while running command. Name: {ctx.command} | Error: {type(error)} | Invoker: {ctx.author} | Channel: {ctx.channel} ({ctx.channel.id})')
 
         if isinstance(error, commands.CommandNotFound):
             return
