@@ -1,7 +1,14 @@
+import logging
+
 import humanize
 import pendulum
 import datetime as dt
 from typing import Union
+import discord
+import mystbin
+
+
+__log__ = logging.getLogger(__name__)
 
 
 def convert_datetime(*, datetime: Union[pendulum.datetime, dt.datetime]) -> pendulum.datetime:
@@ -40,3 +47,21 @@ def format_difference(*, datetime: Union[pendulum.datetime, dt.datetime], suppre
         suppress = ['seconds']
 
     return humanize.precisedelta(pendulum.now(tz='UTC').diff(convert_datetime(datetime=datetime)), format='%0.0f', suppress=suppress)
+
+
+def person_avatar(*, person: Union[discord.User, discord.Member]) -> str:
+    return str(person.avatar_url_as(format='gif' if person.is_avatar_animated() else 'png'))
+
+
+async def safe_text(*, mystbin_client: mystbin.Client, text: str) -> str:
+
+    if len(text) <= 1024:
+        return text
+
+    try:
+        mystbin_link = await mystbin_client.post(text, syntax='python')
+    except mystbin.APIError as error:
+        __log__.warning(f'[ERRORS] Error while uploading error traceback to mystbin | Code: {error.status_code} | Message: {error.message}')
+        mystbin_link = f'{text[:1024]}'
+
+    return mystbin_link

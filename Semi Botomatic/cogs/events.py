@@ -146,8 +146,6 @@ class Events(commands.Cog):
         print(f'\n{error_traceback}\n', file=sys.stderr)
         __log__.error(f'[COMMANDS]\n\n{traceback}\n\n')
 
-        avatar_url = str(ctx.author.avatar_url_as(format='gif' if ctx.author.is_avatar_animated() else 'png'))
-
         info = f'{f"`Guild:` {ctx.guild} `{ctx.guild.id}`" if ctx.guild else ""}\n' \
                f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n' \
                f'`Author:` {ctx.author} `{ctx.author.id}`\n' \
@@ -155,20 +153,14 @@ class Events(commands.Cog):
 
         embed = discord.Embed(colour=ctx.colour, description=f'{ctx.message.content}')
         embed.add_field(name='Info:', value=info)
-        await self.bot.ERROR_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=avatar_url)
+        await self.bot.ERROR_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
         if len(error_traceback) < 2000:
             error_traceback = f'```py\n{error_traceback}\n```'
-
         else:
-            try:
-                error_traceback = await self.bot.mystbin.post(error_traceback, syntax='python')
-            except mystbin.APIError as error:
-                __log__.warning(f'[ERRORS] Error while uploading error traceback to mystbin | Code: {error.status_code} | Message: {error.message}')
-                print(f'[ERRORS] Error while uploading error traceback to mystbin | Code: {error.status_code} | Message: {error.message}')
-                error_traceback = f'```py\n{error_traceback[1900]}\n```'
+            error_traceback = utils.safe_text(mystbin_client=self.bot.mystbin, text=error_traceback)
 
-        await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=avatar_url)
+        await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
     #
 
@@ -184,10 +176,11 @@ class Events(commands.Cog):
             return
 
         embed = discord.Embed(colour=ctx.colour, description=f'{message.content}')
+
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info)
 
-        await self.bot.DMS_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=str(ctx.author.avatar_url_as(format='gif' if ctx.author.is_avatar_animated() else 'png')))
+        await self.bot.DMS_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
@@ -199,6 +192,45 @@ class Events(commands.Cog):
             return
 
         await self.bot.process_commands(after)
+
+        ctx = await self.bot.get_context(message=before)
+        before_content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=before.content)
+        after_content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=after.content)
+
+        embed = discord.Embed(colour=ctx.colour, title='Message content changed:')
+        embed.set_footer(text=f'ID: {before.id}')
+        embed.add_field(name='Before:', value=before_content, inline=False)
+        embed.add_field(name='After:', value=after_content, inline=False)
+
+        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
+        embed.add_field(name='Info:', value=info, inline=False)
+
+        await self.bot.MESSAGE_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message) -> None:
+
+        ctx = await self.bot.get_context(message=message)
+        content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=message.content) if message.content else "*No content*"
+
+        embed = discord.Embed(colour=ctx.colour, title='Message deleted:', description=f'{content}')
+        embed.set_footer(text=f'ID: {message.id}')
+
+        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
+        embed.add_field(name='Info:', value=info, inline=False)
+
+        avatar = utils.person_avatar(person=ctx.author)
+
+        await self.bot.MESSAGE_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=avatar)
+
+        if message.attachments:
+
+            for attachment in message.attachments:
+                try:
+                    file = await attachment.to_file(use_cached=True)
+                    await self.bot.MESSAGE_LOG.send(content=f'Deleted attachments in message `{message.id}`: ', file=file, username=f'{ctx.author}', avatar_url=avatar)
+                except discord.HTTPException or discord.Forbidden or discord.NotFound:
+                    continue
 
 
 def setup(bot: SemiBotomatic):
