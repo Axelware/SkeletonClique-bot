@@ -1,0 +1,12 @@
+*.pyc
+*.ini
+*.log*
+
+.idea/
+node_modules/
+venv/
+
+package-lock.json
+.stylelintrc.json
+package.json
+
