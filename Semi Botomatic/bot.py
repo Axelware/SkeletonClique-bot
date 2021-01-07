@@ -6,6 +6,7 @@ from typing import Optional, Union
 import aiohttp
 import asyncpg
 import discord
+import mystbin
 import psutil
 from discord.ext import commands
 
@@ -19,7 +20,7 @@ class SemiBotomatic(commands.Bot):
 
     def __init__(self) -> None:
         super().__init__(
-                command_prefix=commands.when_mentioned_or('!'), help_command=help.HelpCommand(), owner_ids=config.OWNER_IDS, intents=discord.Intents.all(),
+                command_prefix=commands.when_mentioned_or(config.PREFIX), help_command=help.HelpCommand(), owner_ids=config.OWNER_IDS, intents=discord.Intents.all(),
                 activity=discord.Activity(type=discord.ActivityType.watching, name='all of you'),
                 allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True)
         )
@@ -38,6 +39,7 @@ class SemiBotomatic(commands.Bot):
         self.first_ready: bool = True
 
         self.db: Optional[asyncpg.Connection] = None
+        self.mystbin: mystbin.Client = mystbin.Client()
 
     async def get_context(self, message: discord.Message, *, cls=context.Context) -> context.Context:
         return await super().get_context(message, cls=cls)
