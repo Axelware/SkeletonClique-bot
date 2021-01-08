@@ -4,7 +4,6 @@ import traceback
 from typing import Any, Optional
 
 import discord
-import mystbin
 import pendulum
 import slate
 from discord.ext import commands
