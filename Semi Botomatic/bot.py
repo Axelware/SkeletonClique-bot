@@ -16,7 +16,7 @@ from utilities import context, help
 __log__ = logging.getLogger(__name__)
 
 
-class SemiBotomatic(commands.Bot):
+class SemiBotomatic(commands.AutoShardedBot):
 
     def __init__(self) -> None:
         super().__init__(
