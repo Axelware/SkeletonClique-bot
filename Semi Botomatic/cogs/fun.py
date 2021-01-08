@@ -1,5 +1,6 @@
+import collections
 import random
-from typing import Union
+from typing import Union, Optional
 
 import discord
 from discord.ext import commands
@@ -73,6 +74,39 @@ class Fun(commands.Cog):
             self.RATES[thing] = random.choice(self.RATINGS)
 
         await ctx.send(f'I\'d rate {thing} a {self.RATES[thing]}')
+
+    @commands.command(name='choose', aliases=['choice'])
+    async def choose(self, ctx: context.Context, *choices: commands.clean_content) -> None:
+        """
+        Chooses something from a list of choices.
+
+        `choices`: A list of choices to choose from. These should be separated using just quotes. For example `!choose "Do coding" "Do gaming"`
+        """
+
+        if len(choices) <= 1:
+            raise exceptions.ArgumentError('Not enough choices to choose from.')
+
+        await ctx.send(random.choice(list(map(str, choices))))
+
+    @commands.command(name='choosebestof', aliases=['cbo', 'bestof'])
+    async def choosebestof(self, ctx: context.Context, times: Optional[int], *choices: commands.clean_content) -> None:
+        """
+        Chooses the best option from a list of choices.
+
+        `times`: An amount of times to calculate choices with, more times will equal more 'accurate' results.
+        `choices`: A list of choices to choose from. These should be separated using just quotes. For example `!bestof 99999 "Do coding" "Do gaming"`
+        """
+
+        if len(choices) <= 1:
+            raise exceptions.ArgumentError('Not enough choices to choose from.')
+        if times and times > 9999999:
+            raise exceptions.ArgumentError('That a bit too many times...')
+
+        times = min(10001, max(1, (len(choices) ** 2) + 1 if times is None else times))
+
+        counter = collections.Counter(random.choice(list(map(str, choices))) for _ in range(times))
+        entries = [f'{item[:15] + (item[15:] and ".."):17} | {count/times:.2%}' for item, count in counter.most_common()]
+        await ctx.paginate_embed(entries=entries, per_page=10, codeblock=True, header=f'Choice            | Percentage\n')
 
 
 def setup(bot: SemiBotomatic):
