@@ -1,7 +1,8 @@
+import asyncio
 import logging
 import sys
 import traceback
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import discord
 import pendulum
@@ -89,7 +90,8 @@ class Events(commands.Cog):
         if isinstance(error, commands.BotMissingPermissions):
             permissions = '\n'.join([f'> {permission}' for permission in error.missing_perms])
             message = f'I am missing the following permissions required to run the command `{ctx.command.qualified_name}`.\n{permissions}'
-            return await ctx.try_dm(content=message)
+            await ctx.try_dm(content=message)
+            return
 
         message = None
 
@@ -127,14 +129,11 @@ class Events(commands.Cog):
             message = f'The bot requires the roles {", ".join([f"`{role}`" for role in error.missing_roles])} to run this command.'
 
         if message:
-            return await ctx.send(message)
-
-        message = self.OTHER_ERRORS.get(type(error), None)
-        if message:
-            message = message.format(command=ctx.command.qualified_name, error=error, prefix=config.PREFIX)
-            return await ctx.send(message)
-
-        await self.handle_traceback(ctx=ctx, error=error)
+            await ctx.send(message)
+        elif (message := self.OTHER_ERRORS.get(type(error))) is not None:
+            await ctx.send(message.format(command=ctx.command.qualified_name, error=error, prefix=config.PREFIX))
+        else:
+            await self.handle_traceback(ctx=ctx, error=error)
 
     async def handle_traceback(self, *, ctx: context.Context, error: Any) -> None:
 
@@ -160,21 +159,28 @@ class Events(commands.Cog):
 
         await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
+    @commands.Cog.listener()
+    async def on_socket_response(self, message: dict) -> None:
+
+        if (event := message.get('t')) is not None:
+            self.bot.socket_stats[event] += 1
+
     #
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
 
-        if message.author.id == self.bot.user.id:
+        if config.PREFIX == '!!':
             return
-
-        ctx = await self.bot.get_context(message)
+        if message.author.bot:
+            return
 
         if message.guild:
             return
 
-        embed = discord.Embed(colour=ctx.colour, description=f'{message.content}')
+        ctx = await self.bot.get_context(message)
 
+        embed = discord.Embed(colour=ctx.colour, description=f'{message.content}')
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info)
 
@@ -183,22 +189,22 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
 
+        if config.PREFIX == '!!':
+            return
         if before.author.bot:
             return
 
-        if before.content == after.content:
+        if (before.content == after.content) or before.guild and before.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}:
             return
 
         await self.bot.process_commands(after)
 
         ctx = await self.bot.get_context(message=before)
-        before_content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=before.content)
-        after_content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=after.content)
 
         embed = discord.Embed(colour=ctx.colour, title='Message content changed:')
         embed.set_footer(text=f'ID: {before.id}')
-        embed.add_field(name='Before:', value=before_content, inline=False)
-        embed.add_field(name='After:', value=after_content, inline=False)
+        embed.add_field(name='Before:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=before.content), inline=False)
+        embed.add_field(name='After:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=after.content), inline=False)
 
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info, inline=False)
@@ -206,12 +212,20 @@ class Events(commands.Cog):
         await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
     @commands.Cog.listener()
-    async def on_message_delete(self, message: discord.Message) -> None:
+    async def on_message_delete(self, message: discord.Message, bulk: bool = False) -> None:
+
+        if config.PREFIX == '!!':
+            return
+        if message.author.bot:
+            return
+
+        if message.guild and message.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}:
+            return
 
         ctx = await self.bot.get_context(message=message)
         content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=message.content) if message.content else "*No content*"
 
-        embed = discord.Embed(colour=ctx.colour, title='Message deleted:', description=f'{content}')
+        embed = discord.Embed(colour=ctx.colour, title=f'Message deleted{f" (Bulk message delete)" if bulk else ""}:', description=f'{content}')
         embed.set_footer(text=f'ID: {message.id}')
 
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
@@ -229,6 +243,59 @@ class Events(commands.Cog):
                     await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`: ', file=file, username=f'{ctx.author}', avatar_url=avatar)
                 except discord.HTTPException or discord.Forbidden or discord.NotFound:
                     continue
+
+    @commands.Cog.listener()
+    async def on_bulk_message_delete(self, messages: List[discord.Message]) -> None:
+
+        if config.PREFIX == '!!':
+            return
+        if messages[0].author.bot:
+            return
+
+        for message in messages:
+            await self.on_message_delete(message=message, bulk=True)
+            await asyncio.sleep(3)
+
+    #
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+
+        if config.PREFIX == '!!':
+            return
+
+        if member.guild.id != config.SKELETON_CLIQUE_ID:
+            return
+
+        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} just joined!**')
+        embed.set_footer(text=f'ID: {member.id}')
+
+        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
+               f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
+               f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
+               f'`Member count:` {len(member.guild.members)}\n' \
+
+        embed.add_field(name='Info:', value=info, inline=False)
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+
+        if config.PREFIX == '!!':
+            return
+
+        if member.guild.id != config.SKELETON_CLIQUE_ID:
+            return
+
+        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} ({member}) just left!**')
+        embed.set_footer(text=f'ID: {member.id}')
+
+        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
+               f'`Member count:` {len(member.guild.members)}\n' \
+               f'Roles: {", ".join(role.mention for role in member.roles)}' \
+
+        embed.add_field(name='Info:', value=info, inline=False)
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
 
 
 def setup(bot: SemiBotomatic):

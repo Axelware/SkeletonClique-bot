@@ -105,7 +105,7 @@ class Fun(commands.Cog):
         times = min(10001, max(1, (len(choices) ** 2) + 1 if times is None else times))
 
         counter = collections.Counter(random.choice(list(map(str, choices))) for _ in range(times))
-        entries = [f'{item[:15] + (item[15:] and ".."):17} | {count/times:.2%}' for item, count in counter.most_common()]
+        entries = [f'{item[:15] + (item[15:] and ".."):17} | {count / times:.2%}' for item, count in counter.most_common()]
         await ctx.paginate_embed(entries=entries, per_page=10, codeblock=True, header=f'Choice            | Percentage\n')
 
 

@@ -318,8 +318,7 @@ class Information(commands.Cog):
                             f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
                             f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
                             f'`Badges:` {utils.badges(bot=self.bot, person=member)}\n' \
-                            f'`Status:` {member.status.name.replace("dnd", "Do Not Disturb").title()}' \
-                            f'{"<:phone:738961150343118958>" if member.is_on_mobile() else ""}\n' \
+                            f'`Status:` {member.status.name.replace("dnd", "Do Not Disturb").title()}{"<:phone:738961150343118958>" if member.is_on_mobile() else ""}\n' \
                             f'`Bot:` {str(member.bot).replace("True", "Yes").replace("False", "No")}\n' \
                             f'`Activity:` {utils.activities(person=member)}'
 

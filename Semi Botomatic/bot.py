@@ -21,7 +21,7 @@ class SemiBotomatic(commands.AutoShardedBot):
     def __init__(self) -> None:
         super().__init__(
                 command_prefix=commands.when_mentioned_or(config.PREFIX), help_command=help.HelpCommand(), owner_ids=config.OWNER_IDS, intents=discord.Intents.all(),
-                activity=discord.Activity(type=discord.ActivityType.watching, name='all of you'),
+                activity=discord.Activity(type=discord.ActivityType.watching, name='all of you'), max_messages=10000,
                 allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True)
         )
 
