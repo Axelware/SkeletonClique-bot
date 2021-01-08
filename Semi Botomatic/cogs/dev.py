@@ -66,10 +66,8 @@ class Dev(commands.Cog):
         `limit`: The amount of messages to check back through. Defaults to 50.
         """
 
-        prefix = config.PREFIX
-
         if ctx.channel.permissions_for(ctx.me).manage_messages:
-            messages = await ctx.channel.purge(check=lambda message: message.author == ctx.me or message.content.startswith(prefix), bulk=True, limit=limit)
+            messages = await ctx.channel.purge(check=lambda message: message.author == ctx.me or message.content.startswith(config.PREFIX), bulk=True, limit=limit)
         else:
             messages = await ctx.channel.purge(check=lambda message: message.author == ctx.me, bulk=False, limit=limit)
 
