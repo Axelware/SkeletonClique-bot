@@ -31,7 +31,7 @@ async def safe_text(*, mystbin_client: mystbin.Client, text: str) -> str:
 
 
 def convert_datetime(*, datetime: Union[dt.datetime, pendulum.datetime]) -> pendulum.datetime:
-    return pendulum.instance(datetime) if isinstance(datetime, dt.datetime) else datetime
+    return pendulum.instance(datetime, tz='UTC') if isinstance(datetime, dt.datetime) else datetime
 
 
 def format_seconds(*, seconds: int, friendly: bool = False) -> str:
@@ -50,11 +50,11 @@ def format_seconds(*, seconds: int, friendly: bool = False) -> str:
 
 def format_datetime(*, datetime: Union[dt.datetime, pendulum.datetime], seconds: bool = False) -> str:
     datetime = convert_datetime(datetime=datetime)
-    return datetime.format(f'dddd MMMM do YYYY [at] hh:mm{":ss" if seconds else ""} A zz{"ZZ" if datetime.timezone.name != "UTC" else ""}')
+    return datetime.format(f'dddd MMMM Do YYYY [at] hh:mm{":ss" if seconds else ""} A zz{"ZZ" if datetime.timezone.name != "UTC" else ""}')
 
 
 def format_date(*, datetime: Union[dt.datetime, pendulum.datetime]) -> str:
-    return convert_datetime(datetime=datetime).format(f'dddd MMMM do YYYY')
+    return convert_datetime(datetime=datetime).format(f'dddd MMMM Do YYYY')
 
 
 def format_difference(*, datetime: Union[dt.datetime, pendulum.datetime], suppress=None) -> str:
