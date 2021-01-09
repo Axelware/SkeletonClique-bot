@@ -16,22 +16,24 @@ class Information(commands.Cog):
         self.bot = bot
 
         self.FEATURES = {
-            'VERIFIED':                         'Is verified server',
-            'PARTNERED':                        'Is partnered server',
-            'MORE_EMOJI':                       'Can have 50+ emoji',
-            'DISCOVERABLE':                     'Is discoverable',
-            'FEATURABLE':                       'Is featurable',
-            'PUBLIC':                           'Is public',
-            'VIP_REGIONS':                      'Can have VIP voice regions',
+            'VIP_REGIONS':                      'Has VIP voice regions',
             'VANITY_URL':                       'Can have vanity invite',
             'INVITE_SPLASH':                    'Can have invite splash',
+            'VERIFIED':                         'Is verified server',
+            'PARTNERED':                        'Is partnered server',
+            'MORE_EMOJI':                       'Can have 50+ emoji (No boosts)',
+            'DISCOVERABLE':                     'Is discoverable',
+            'FEATURABLE':                       'Is featurable',
+            'COMMUNITY':                        'Is community server',
             'COMMERCE':                         'Can have store channels',
+            'PUBLIC':                           'Is public',
             'NEWS':                             'Can have news channels',
             'BANNER':                           'Can have banner',
             'ANIMATED_ICON':                    'Can have animated icon',
             'PUBLIC_DISABLED':                  'Can not be public',
             'WELCOME_SCREEN_ENABLED':           'Can have welcome screen',
-            'MEMBER_VERIFICATION_GATE_ENABLED': 'Has member verify gate'
+            'MEMBER_VERIFICATION_GATE_ENABLED': 'Has member verify gate',
+            'PREVIEW_ENABLED':                  'Is previewable',
         }
 
         self.MFA_LEVELS = {
@@ -141,7 +143,7 @@ class Information(commands.Cog):
         statuses = collections.Counter([member.status for member in guild.members])
 
         features = []
-        for feature, description in self.FEATURES.items():
+        for feature, description in sorted(self.FEATURES.items(), key=lambda kv: kv[1][0]):
             if feature in guild.features:
                 features.append(f'<:tick:739315349715026001> {description}')
             else:
@@ -376,5 +378,5 @@ class Information(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: SemiBotomatic):
+def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Information(bot=bot))
