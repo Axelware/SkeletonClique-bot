@@ -298,5 +298,5 @@ class Events(commands.Cog):
         await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
 
 
-def setup(bot: SemiBotomatic):
+def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Events(bot=bot))

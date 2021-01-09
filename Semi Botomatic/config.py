@@ -1,7 +1,7 @@
 
 # Bot stuff
 TOKEN = 'Nzk2NDIxMDYyMTAyNjE0MDQ2.X_Xq6Q.mLuJ4gYW9OFRRwxznSxiTS4H044'
-PREFIX = '!!'
+PREFIX = '!'
 COLOUR = 0x4e5122
 ZWSP = '\u200b'
 NL = '\n'
@@ -15,6 +15,7 @@ OWNER_IDS = {
 
 EXTENSIONS = [
     'cogs.information',
+    'cogs.background',
     'cogs.events',
     'cogs.fun',
     'cogs.dev',
