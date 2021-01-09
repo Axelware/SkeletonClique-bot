@@ -23,7 +23,7 @@ class HelpCommand(commands.HelpCommand):
         filtered_commands = []
 
         for command in cog.walk_commands():
-            if command.hidden and self.context.author.id not in config.OWNER_IDS:
+            if (command.hidden or command.root_parent and command.root_parent.hidden) and self.context.author.id not in config.OWNER_IDS:
                 continue
             filtered_commands.append(command)
 
@@ -50,8 +50,8 @@ class HelpCommand(commands.HelpCommand):
 
         for cog in sorted(self.context.bot.cogs.values(), key=lambda c: len(list(c.walk_commands())), reverse=True):
 
-            if (cog_commands := self.get_cog_commands(cog=cog)) is None:
-                return
+            if not (cog_commands := self.get_cog_commands(cog=cog)):
+                continue
 
             entries.append(f'__**{cog.qualified_name}:**__\n{"".join(f"`{command.qualified_name}`{config.ZWSP} " for command in cog_commands)}')
 
