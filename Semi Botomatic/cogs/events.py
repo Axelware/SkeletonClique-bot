@@ -258,45 +258,6 @@ class Events(commands.Cog):
 
     #
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
-
-        if config.PREFIX == '!!':
-            return
-
-        if member.guild.id != config.SKELETON_CLIQUE_ID:
-            return
-
-        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} just joined!**')
-        embed.set_footer(text=f'ID: {member.id}')
-
-        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
-               f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
-               f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
-               f'`Member count:` {len(member.guild.members)}\n' \
-
-        embed.add_field(name='Info:', value=info, inline=False)
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
-
-    @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member):
-
-        if config.PREFIX == '!!':
-            return
-
-        if member.guild.id != config.SKELETON_CLIQUE_ID:
-            return
-
-        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} ({member}) just left!**')
-        embed.set_footer(text=f'ID: {member.id}')
-
-        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
-               f'`Member count:` {len(member.guild.members)}\n' \
-               f'Roles: {", ".join(role.mention for role in member.roles)}' \
-
-        embed.add_field(name='Info:', value=info, inline=False)
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
-
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Events(bot=bot))
