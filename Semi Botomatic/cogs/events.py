@@ -1,8 +1,7 @@
-import asyncio
 import logging
 import sys
 import traceback
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import discord
 import pendulum
@@ -172,89 +171,22 @@ class Events(commands.Cog):
 
         if config.PREFIX == '!!':
             return
-        if message.author.bot:
-            return
-
-        if message.guild:
+        if message.author.bot or message.guild:
             return
 
         ctx = await self.bot.get_context(message)
-
         embed = discord.Embed(colour=ctx.colour, description=f'{message.content}')
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info)
-
         await self.bot.DMS_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
 
-        if config.PREFIX == '!!':
-            return
-        if before.author.bot:
-            return
-
-        if (before.content == after.content) or before.guild and before.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}:
+        if before.content == after.content or before.author.bot:
             return
 
         await self.bot.process_commands(after)
-
-        ctx = await self.bot.get_context(message=before)
-
-        embed = discord.Embed(colour=ctx.colour, title='Message content changed:')
-        embed.set_footer(text=f'ID: {before.id}')
-        embed.add_field(name='Before:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=before.content), inline=False)
-        embed.add_field(name='After:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=after.content), inline=False)
-
-        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
-        embed.add_field(name='Info:', value=info, inline=False)
-
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
-
-    @commands.Cog.listener()
-    async def on_message_delete(self, message: discord.Message, bulk: bool = False) -> None:
-
-        if config.PREFIX == '!!':
-            return
-        if message.author.bot:
-            return
-
-        if message.guild and message.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}:
-            return
-
-        ctx = await self.bot.get_context(message=message)
-        content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=message.content) if message.content else "*No content*"
-
-        embed = discord.Embed(colour=ctx.colour, title=f'Message deleted{f" (Bulk message delete)" if bulk else ""}:', description=f'{content}')
-        embed.set_footer(text=f'ID: {message.id}')
-
-        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
-        embed.add_field(name='Info:', value=info, inline=False)
-
-        avatar = utils.person_avatar(person=ctx.author)
-
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=avatar)
-
-        if message.attachments:
-
-            for attachment in message.attachments:
-                try:
-                    file = await attachment.to_file(use_cached=True)
-                    await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`: ', file=file, username=f'{ctx.author}', avatar_url=avatar)
-                except discord.HTTPException or discord.Forbidden or discord.NotFound:
-                    continue
-
-    @commands.Cog.listener()
-    async def on_bulk_message_delete(self, messages: List[discord.Message]) -> None:
-
-        if config.PREFIX == '!!':
-            return
-        if messages[0].author.bot:
-            return
-
-        for message in messages:
-            await self.on_message_delete(message=message, bulk=True)
-            await asyncio.sleep(3)
 
     #
 
