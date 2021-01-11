@@ -1,7 +1,8 @@
+import asyncio
 import logging
 import sys
 import traceback
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import discord
 import pendulum
@@ -183,12 +184,97 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
 
-        if before.content == after.content or before.author.bot:
+        if before.content == after.content:
             return
 
         await self.bot.process_commands(after)
 
+        if config.PREFIX == '!!':
+            return
+        if before.author.bot or (before.guild and before.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}):
+            return
+
+        ctx = await self.bot.get_context(message=before)
+
+        embed = discord.Embed(colour=ctx.colour, title='Message content changed:')
+        embed.add_field(name='Before:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=before.content), inline=False)
+        embed.add_field(name='After:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=after.content), inline=False)
+        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
+        embed.add_field(name='Info:', value=info, inline=False)
+        embed.set_footer(text=f'ID: {before.id}')
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message, bulk: bool = False) -> None:
+
+        if config.PREFIX == '!!':
+            return
+        if message.author.bot or (message.guild and message.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}):
+            return
+
+        ctx = await self.bot.get_context(message=message)
+        content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=message.content) if message.content else "*No content*"
+
+        embed = discord.Embed(colour=ctx.colour, title=f'Message deleted{f" (Bulk message delete)" if bulk else ""}:', description=f'{content}')
+        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
+        embed.add_field(name='Info:', value=info, inline=False)
+        embed.set_footer(text=f'ID: {message.id}')
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+
+        if message.attachments:
+
+            for attachment in message.attachments:
+                try:
+                    await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`:', file=await attachment.to_file(use_cached=True),
+                                                   username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+                except discord.HTTPException or discord.Forbidden or discord.NotFound:
+                    continue
+
+    @commands.Cog.listener()
+    async def on_bulk_message_delete(self, messages: List[discord.Message]) -> None:
+
+        for message in messages:
+            await self.on_message_delete(message=message, bulk=True)
+            await asyncio.sleep(3)
+
     #
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member) -> None:
+
+        if config.PREFIX == '!!':
+            return
+        if member.guild.id != config.SKELETON_CLIQUE_ID:
+            return
+
+        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} just joined!**')
+        embed.set_footer(text=f'ID: {member.id}')
+
+        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
+               f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
+               f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
+               f'`Member count:` {len(member.guild.members)}\n' \
+
+        embed.add_field(name='Info:', value=info, inline=False)
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member) -> None:
+
+        if config.PREFIX == '!!':
+            return
+        if member.guild.id != config.SKELETON_CLIQUE_ID:
+            return
+
+        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} ({member}) just left!**')
+        embed.set_footer(text=f'ID: {member.id}')
+
+        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
+               f'`Member count:` {len(member.guild.members)}\n' \
+               f'Roles: {", ".join(role.mention for role in member.roles)}' \
+
+        embed.add_field(name='Info:', value=info, inline=False)
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
 
 
 def setup(bot: SemiBotomatic) -> None:
