@@ -1,7 +1,11 @@
 from abc import ABC
 
+import dateparser.search
 import discord
+import pendulum
+import rapidfuzz
 from discord.ext import commands
+from pendulum.tz.timezone import Timezone
 
 import config
 from utilities import context, exceptions
@@ -50,6 +54,17 @@ class UserConverter(commands.UserConverter):
         return user
 
 
+class TimezoneConverter(commands.Converter, ABC):
+
+    async def convert(self, ctx: context.Context, argument: str) -> Timezone:
+
+        if argument not in pendulum.timezones:
+            extra_message = '\n'.join(f'`{index + 1}.` {match[0]}' for index, match in enumerate(rapidfuzz.process.extract(query=argument, choices=pendulum.timezones, limit=5)))
+            raise exceptions.ArgumentError(f'That was not a recognised timezone. Maybe you meant one of these?\n{extra_message}')
+
+        return pendulum.timezone(argument)
+
+
 class TagNameConverter(commands.clean_content, ABC):
 
     async def convert(self, ctx: context.Context, argument: str) -> str:
@@ -82,3 +97,23 @@ class TagContentConverter(commands.clean_content, ABC):
             raise exceptions.ArgumentError('Your tag content can not be more than 1024 characters long.')
 
         return argument
+
+
+class DatetimeConverter(commands.Converter, ABC):
+
+    async def convert(self, ctx: context.Context, argument: str) -> dict:
+
+        searches = dateparser.search.search_dates(argument, languages=['en'], settings=config.DATEPARSER_SETTINGS)
+        if not searches:
+            raise exceptions.ArgumentError('I was unable to find a time and/or date within your query, try to be more explicit or put the time/date first.')
+
+        data = {'argument': argument, 'found': {}}
+
+        for datetime_phrase, datetime in searches:
+            datetime = pendulum.instance(dt=datetime, tz='UTC')
+            data['found'][datetime_phrase] = datetime
+
+        if not data['found']:
+            raise exceptions.ArgumentError('I was able to find a time and/or date within your query, however it seems to be in the past.')
+
+        return data
