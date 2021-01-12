@@ -2,9 +2,25 @@
 # Bot stuff
 TOKEN = 'Nzk2NDIxMDYyMTAyNjE0MDQ2.X_Xq6Q.mLuJ4gYW9OFRRwxznSxiTS4H044'
 PREFIX = '!'
+
+EXTENSIONS = [
+    'cogs.information',
+    'cogs.background',
+    'cogs.events',
+    'cogs.tags',
+    'cogs.fun',
+    'cogs.dev',
+    'jishaku',
+]
+
+
+# CUSTOM
 COLOUR = 0x4e5122
 ZWSP = '\u200b'
 NL = '\n'
+
+
+# IDS
 SKELETON_CLIQUE_ID = 470584033668104212
 ALESS_LAND_ID = 598911246087094272
 
@@ -13,14 +29,6 @@ OWNER_IDS = {
     360594708327825411, 516800955086536715, 405057609213673473, 238356301439041536, 494141434568376351
 }
 
-EXTENSIONS = [
-    'cogs.information',
-    'cogs.background',
-    'cogs.events',
-    'cogs.fun',
-    'cogs.dev',
-    'jishaku',
-]
 
 # Webhooks
 ERROR_WEBHOOK = 'https://canary.discord.com/api/webhooks/796488853619212299/0v0tNO86mxONGoVy29t3XbFukgs1CTW7NwwE4nNhUYKpzv8lh5J2aynuJvCfWm0Wc19E'
@@ -28,16 +36,16 @@ DM_WEBHOOK = 'https://canary.discord.com/api/webhooks/796488926009098290/-gJxnSL
 COMMON_LOG_WEBHOOK = 'https://canary.discord.com/api/webhooks/796488998666108979/aUHwE90s1gxNYiMtPr0-CR6yYe6WtcIchD8d54OD9WZvNZTCDQ9XYWZwRcDI68vaQ1bR'
 IMPORTANT_LOG_WEBHOOK = 'https://canary.discord.com/api/webhooks/796489101279887411/pGTWOtWrKNVzFzWUEgbWcA4qABx2LEpO8MmOmyTxLFLn-VTCPZ865xmHzlrsBz0SziVr'
 
+STARBOARD_WEBHOOK = 'https://canary.discord.com/api/webhooks/797912239834529832/xsU9pM-HXFWFKQvQw3VNKiAW7YLpFJ3tJRQ5Sglny1OAC7HG5MEKtTHBpak1ZLiGOsnT'
+STARBOARD_CHANNEL_ID = 759241537388806154
+
+
 # Connection information
 POSTGRESQL = {
     'host':     '144.172.70.212',
     'user':     'skeleton',
     'database': 'skeleton',
     'password': '2MNGd^GB,FP9G%aStTv:',
-}
-
-REDIS = {
-    # TODO: Redis stuff
 }
 
 
