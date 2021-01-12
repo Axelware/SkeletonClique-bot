@@ -190,7 +190,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError(f'You do not own the tag with name `{name}`.')
 
         await self.bot.tag_manager.delete_tag(name=str(name))
-        await ctx.send(f'Delete tag with name `{name}`.')
+        await ctx.send(f'Deleted tag with name `{name}`.')
 
     @tag.command(name='search')
     async def tag_search(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:
@@ -225,7 +225,7 @@ class Tags(commands.Cog):
         entries = [f'`{index + 1}.` {tag.name}' for index, tag in enumerate(tags)]
         await ctx.paginate_embed(entries=entries, per_page=25, header=f'**{member}\'s tags:**\n\n')
 
-    @tag.command(name='all')
+    @tag.command(name='all', aliases=['alltags', 'listall'])
     async def tag_all(self, ctx: context.Context) -> None:
         """
         Get a list of all tags in this server.
