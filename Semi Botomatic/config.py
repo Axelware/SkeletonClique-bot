@@ -8,6 +8,7 @@ EXTENSIONS = [
     'cogs.background',
     'cogs.events',
     'cogs.tags',
+    'cogs.time',
     'cogs.fun',
     'cogs.dev',
     'jishaku',
@@ -79,4 +80,15 @@ BADGE_EMOJIS = {
     'system':                 '<:system_1:738960703284576378><:system_2:738960703288770650>',
     'verified_bot':           '<:verified_bot_1:738960728022581258><:verified_bot_2:738960728102273084>',
     'verified_bot_developer': '<:verified_bot_developer:738961212250914897>',
+}
+
+
+# Dateparser settings
+DATEPARSER_SETTINGS = {
+    'DATE_ORDER':               'DMY',
+    'TIMEZONE':                 'UTC',
+    'RETURN_AS_TIMEZONE_AWARE': False,
+    'PREFER_DAY_OF_MONTH':      'current',
+    'PREFER_DATES_FROM':        'future',
+    'PARSERS':                  ['relative-time', 'absolute-time', 'timestamp', 'custom-formats']
 }
