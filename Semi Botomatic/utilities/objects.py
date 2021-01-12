@@ -92,7 +92,7 @@ class Tag:
 
 class Reminder:
 
-    __slots__ = 'owner_id', 'id', 'created_at', 'datetime', 'content', 'message_link', 'message_id', 'channel_id', 'dm', 'task'
+    __slots__ = 'owner_id', 'id', 'created_at', 'datetime', 'content', 'message_link', 'message_id', 'task'
 
     def __init__(self, data: dict) -> None:
 
@@ -103,8 +103,6 @@ class Reminder:
         self.content: str = data.get('content')
         self.message_link: str = data.get('message_link')
         self.message_id: int = data.get('message_id')
-        self.channel_id: int = data.get('channel_id')
-        self.dm: bool = data.get('dm')
 
         self.task = None
 

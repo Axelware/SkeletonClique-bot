@@ -64,23 +64,10 @@ class ReminderManager:
         embed.add_field(name='Info:', value=f'`Time set:` {utils.format_datetime(datetime=reminder.created_at, seconds=True)}\n'
                                             f'`Time to remind at:` {utils.format_datetime(datetime=reminder.datetime, seconds=True)}')
 
-        channel = self.bot.get_channel(reminder.channel_id)
-        if reminder.dm or channel is None:
-            try:
-                await person.send(content=person.mention, embed=embed)
-            except discord.Forbidden:
-                __log__.warning(f'[REMINDER MANAGER] Attempted reminder with id \'{reminder.id}\' but user with \'{reminder.owner_id}\' was not able to be DM\'ed.')
-
-        else:
-
-            try:
-                await channel.send(content=person.mention, embed=embed)
-            except discord.Forbidden:
-                __log__.warning(f'[REMINDER MANAGER] Attempted reminder with id \'{reminder.id}\' but channel with \'{reminder.owner_id}\' was not messageable, trying DM.')
-                try:
-                    await person.send(content=person.mention, embed=embed)
-                except discord.Forbidden:
-                    __log__.warning(f'[REMINDER MANAGER] Attempted reminder with id \'{reminder.id}\' but user with \'{reminder.owner_id}\' was not able to be DM\'ed.')
+        try:
+            await person.send(content=person.mention, embed=embed)
+        except discord.Forbidden:
+            __log__.warning(f'[REMINDER MANAGER] Attempted reminder with id \'{reminder.id}\' but user with \'{reminder.owner_id}\' was not able to be DM\'ed.')
 
     #
 
@@ -96,14 +83,14 @@ class ReminderManager:
 
         return reminders[0]
 
-    async def create_reminder(self, *, user_id: int, datetime: DateTime, content: str, ctx: context.Context, dm: bool = False) -> objects.Reminder:
+    async def create_reminder(self, *, user_id: int, datetime: DateTime, content: str, ctx: context.Context) -> objects.Reminder:
 
         user_config = self.bot.user_manager.get_user_config(user_id=user_id)
         if isinstance(user_config, objects.DefaultUserConfig):
             user_config = await self.bot.user_manager.create_user_config(user_id=user_id)
 
-        query = 'INSERT INTO reminders (owner_id, created_at, datetime, content, message_link, message_id, channel_id, dm) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *'
-        data = await self.bot.db.fetchrow(query, user_id, pendulum.now(tz='UTC'), datetime, content, ctx.message.jump_url, ctx.message.id, ctx.channel.id, dm)
+        query = 'INSERT INTO reminders (owner_id, created_at, datetime, content, message_link, message_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *'
+        data = await self.bot.db.fetchrow(query, user_id, pendulum.now(tz='UTC'), datetime, content, ctx.message.jump_url, ctx.message.id)
         __log__.info(f'[REMINDER MANAGER] Created reminder with id \'{data["id"]}\'for user with id \'{user_id}\'')
 
         reminder = objects.Reminder(data=dict(data))
