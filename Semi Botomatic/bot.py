@@ -12,7 +12,7 @@ import psutil
 from discord.ext import commands
 
 import config
-from managers import user_manager, tag_manager
+from managers import reminder_manager, tag_manager, user_manager
 from utilities import context, help
 
 __log__ = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ class SemiBotomatic(commands.AutoShardedBot):
 
         self.user_manager: user_manager.UserManager = user_manager.UserManager(bot=self)
         self.tag_manager: tag_manager.TagManager = tag_manager.TagManager(bot=self)
+        self.reminder_manager: reminder_manager.ReminderManager = reminder_manager.ReminderManager(bot=self)
 
         self.mystbin: mystbin.Client = mystbin.Client()
 

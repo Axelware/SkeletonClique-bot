@@ -1,18 +1,22 @@
 import asyncio
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import discord
 from discord.ext import commands
 
 import config
-from utilities import exceptions, paginators
+from utilities import exceptions, objects, paginators
 
 
 class Context(commands.Context):
 
     @property
-    def colour(self):
-        return self.top_colour_role if isinstance(self.author, discord.Member) else discord.Colour(config.COLOUR)
+    def user_config(self) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
+
+        if not self.author:
+            return self.bot.user_manager.default_user_config
+
+        return self.bot.user_manager.get_user_config(user_id=self.author.id)
 
     @property
     def top_colour_role(self) -> Optional[discord.Colour]:
@@ -23,6 +27,10 @@ class Context(commands.Context):
             return discord.Colour(config.COLOUR)
 
         return colour_roles[0].colour
+
+    @property
+    def colour(self):
+        return self.top_colour_role if isinstance(self.author, discord.Member) else discord.Colour(config.COLOUR)
 
     async def paginate(self, **kwargs) -> paginators.Paginator:
         paginator = paginators.Paginator(ctx=self, **kwargs)

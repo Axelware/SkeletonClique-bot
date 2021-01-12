@@ -10,7 +10,6 @@ import pendulum
 from PIL import Image, ImageDraw, ImageFont
 from discord.ext import tasks
 
-from managers import tag_manager
 from utilities import exceptions, objects
 from utilities.enums import Editables, Operations
 
@@ -38,6 +37,8 @@ class UserManager:
 
         __log__.info(f'[USER MANAGER] Loaded user configs. [{len(configs)} users]')
         print(f'[USER MANAGER] Loaded user configs. [{len(configs)} users]')
+
+        await self.bot.reminder_manager.load()
 
     #
 
@@ -137,16 +138,15 @@ class UserManager:
 
         for user_id, config in configs:
 
-            if config.timezone_private or config.timezone == pendulum.timezone('UTC'):
-                continue
-
             user = guild.get_member(user_id)
             if not user:
                 continue
 
+            if config.timezone_private or config.timezone == pendulum.timezone('UTC'):
+                continue
+
             if timezone_users.get(config.time.format('HH:mm (ZZ)')) is None:
                 timezone_users[config.time.format('HH:mm (ZZ)')] = [io.BytesIO(await user.avatar_url_as(format='png', size=256).read())]
-
             else:
                 timezone_users[config.time.format('HH:mm (ZZ)')].append(io.BytesIO(await user.avatar_url_as(format='png', size=256).read()))
 
