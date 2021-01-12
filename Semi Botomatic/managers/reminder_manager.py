@@ -59,13 +59,12 @@ class ReminderManager:
             return
 
         embed = discord.Embed(colour=discord.Colour(config.COLOUR),
-                              description=f'**[Reminder]({reminder.message_link}) - {utils.format_difference(datetime=reminder.created_at, suppress=[])} ago**\n\n'
-                                          f'{reminder.content}\n\n')
-        embed.add_field(name='Info:', value=f'`Time set:` {utils.format_datetime(datetime=reminder.created_at, seconds=True)}\n'
-                                            f'`Time to remind at:` {utils.format_datetime(datetime=reminder.datetime, seconds=True)}')
+                              description=f'**Reminder:**\n'
+                                          f'You said this `{utils.format_difference(datetime=reminder.created_at, suppress=[])}` ago:\n{reminder.content}\n\n'
+                                          f'**[Jump to message]({reminder.message_link})**')
 
         try:
-            await person.send(content=person.mention, embed=embed)
+            await person.send(embed=embed)
         except discord.Forbidden:
             __log__.warning(f'[REMINDER MANAGER] Attempted reminder with id \'{reminder.id}\' but user with \'{reminder.owner_id}\' was not able to be DM\'ed.')
 
