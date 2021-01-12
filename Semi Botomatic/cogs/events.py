@@ -165,6 +165,12 @@ class Events(commands.Cog):
         if (event := message.get('t')) is not None:
             self.bot.socket_stats[event] += 1
 
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+
+        print(f'\n[BOT] The bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}\n')
+        __log__.info(f'Bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}')
+
     #
 
     @commands.Cog.listener()
