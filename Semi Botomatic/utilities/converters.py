@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 import config
-from utilities import context
+from utilities import context, exceptions
 
 
 class ChannelEmojiConverter(commands.Converter, ABC):
@@ -48,3 +48,37 @@ class UserConverter(commands.UserConverter):
                 raise commands.UserNotFound(argument=argument)
 
         return user
+
+
+class TagNameConverter(commands.clean_content, ABC):
+
+    async def convert(self, ctx: context.Context, argument: str) -> str:
+
+        argument = discord.utils.escape_markdown(await super().convert(ctx, argument)).strip()
+
+        if not argument:
+            raise commands.BadArgument
+
+        if argument.split(' ')[0] in ctx.bot.get_command('tag').all_commands:
+            raise exceptions.ArgumentError('Your tag name can not start with a tag subcommand.')
+        if '`' in argument:
+            raise exceptions.ArgumentError('Your tag name can not contain backtick characters.')
+        if len(argument) < 3 or len(argument) > 50:
+            raise exceptions.ArgumentError('Your tag name must be between 3 and 50 characters long.')
+
+        return argument
+
+
+class TagContentConverter(commands.clean_content, ABC):
+
+    async def convert(self, ctx: context.Context, argument: str) -> str:
+
+        argument = (await super().convert(ctx, argument)).strip()
+
+        if not argument:
+            raise commands.BadArgument
+
+        if len(argument) > 1024:
+            raise exceptions.ArgumentError('Your tag content can not be more than 1024 characters long.')
+
+        return argument

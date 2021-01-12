@@ -5,12 +5,14 @@ from typing import Optional, Union
 
 import aiohttp
 import asyncpg
+import asyncpg.pool
 import discord
 import mystbin
 import psutil
 from discord.ext import commands
 
 import config
+from managers import user_manager, tag_manager
 from utilities import context, help
 
 __log__ = logging.getLogger(__name__)
@@ -38,7 +40,11 @@ class SemiBotomatic(commands.AutoShardedBot):
 
         self.first_ready: bool = True
 
-        self.db: Optional[asyncpg.Connection] = None
+        self.db: Optional[asyncpg.pool.Pool] = None
+
+        self.user_manager: user_manager.UserManager = user_manager.UserManager(bot=self)
+        self.tag_manager: tag_manager.TagManager = tag_manager.TagManager(bot=self)
+
         self.mystbin: mystbin.Client = mystbin.Client()
 
     async def get_context(self, message: discord.Message, *, cls=context.Context) -> context.Context:
@@ -58,7 +64,7 @@ class SemiBotomatic(commands.AutoShardedBot):
             raise ConnectionError
         else:
             __log__.info('[POSTGRESQL] Successful connection.')
-            print(f'\n[POSTGRESQL] Successful connection.')
+            print(f'\n[POSTGRESQL] Successful connection.\n')
             self.db = db
 
         for extension in config.EXTENSIONS:
@@ -94,3 +100,19 @@ class SemiBotomatic(commands.AutoShardedBot):
         __log__.info('[BOT] Bot has shutdown.')
         print('Bye bye!')
         await super().close()
+
+    #
+
+    async def on_ready(self) -> None:
+
+        if self.first_ready is False:
+            return
+
+        self.first_ready = False
+
+        await self.user_manager.load()
+        await self.tag_manager.load()
+
+        for cog in self.cogs.values():
+            if hasattr(cog, 'load'):
+                await cog.load()
