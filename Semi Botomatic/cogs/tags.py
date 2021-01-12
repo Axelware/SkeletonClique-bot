@@ -11,6 +11,16 @@ class Tags(commands.Cog):
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
+    def get_tag_limit(self, member: discord.Member) -> int:
+
+        limit = 5
+        if discord.utils.get(member.roles, id=config.NITRO_BOOSTER_ROLE_ID) is not None:
+            limit = 10
+        elif discord.utils.get(member.roles, id=config.FAIRY_LOCALS_ROLE_ID) is not None:
+            limit = 20
+
+        return limit
+
     @commands.group(name='tag', aliases=['tags'], invoke_without_command=True)
     async def tag(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:
         """
@@ -62,6 +72,10 @@ class Tags(commands.Cog):
         `content`: The content of the tag.
         """
 
+        limit = self.get_tag_limit(member=ctx.author)
+        if len(self.bot.tag_manager.get_tags_owned_by(member=ctx.author)) >= limit and ctx.author.id not in config.OWNER_IDS:
+            raise exceptions.ArgumentError(f'You already have the maximum of `{limit}` tags.')
+
         tag = self.bot.tag_manager.get_tag(name=str(name))
         if tag:
             raise exceptions.ArgumentError(f'There is already a tag with the name `{name}`.')
@@ -77,6 +91,10 @@ class Tags(commands.Cog):
         `alias`: The alias to create.
         `name`: The name of the tag to point the alias at.
         """
+
+        limit = self.get_tag_limit(member=ctx.author)
+        if len(self.bot.tag_manager.get_tags_owned_by(member=ctx.author)) >= limit and ctx.author.id not in config.OWNER_IDS:
+            raise exceptions.ArgumentError(f'You already have the maximum of `{limit}` tags.')
 
         alias_tag = self.bot.tag_manager.get_tag(name=str(alias))
         if alias_tag:
@@ -96,6 +114,10 @@ class Tags(commands.Cog):
 
         `name`: The name of the tag to claim.
         """
+
+        limit = self.get_tag_limit(member=ctx.author)
+        if len(self.bot.tag_manager.get_tags_owned_by(member=ctx.author)) >= limit and ctx.author.id not in config.OWNER_IDS:
+            raise exceptions.ArgumentError(f'You already have the maximum of `{limit}` tags.')
 
         tag = self.bot.tag_manager.get_tag(name=str(name))
         if not tag:
@@ -119,6 +141,10 @@ class Tags(commands.Cog):
 
         if member.bot:
             raise exceptions.ArgumentError('You can not transfer tags to bots.')
+
+        limit = self.get_tag_limit(member=member)
+        if len(self.bot.tag_manager.get_tags_owned_by(member=member)) >= limit and member.id not in config.OWNER_IDS:
+            raise exceptions.ArgumentError(f'The person you are trying to transfer the tag too already has the maximum of `{limit}` tags.')
 
         tag = self.bot.tag_manager.get_tag(name=str(name))
         if not tag:
