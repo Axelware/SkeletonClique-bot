@@ -67,7 +67,7 @@ def format_difference(*, datetime: Union[dt.datetime, DateTime], suppress=None) 
     if suppress is None:
         suppress = ['seconds']
 
-    return humanize.precisedelta(pendulum.now(tz='UTC').diff(convert_datetime(datetime=datetime).subtract(seconds=1)), format='%0.0f', suppress=suppress)
+    return humanize.precisedelta(pendulum.now(tz='UTC').diff(convert_datetime(datetime=datetime)), format='%0.0f', suppress=suppress)
 
 
 def person_avatar(*, person: Union[discord.User, discord.Member]) -> str:
