@@ -160,7 +160,7 @@ class Tags(commands.Cog):
         tag = self.bot.tag_manager.get_tag(name=str(name))
         if not tag:
             raise exceptions.ArgumentError(f'There are no tags with the name `{name}`.')
-        if tag.owner_id != ctx.author.id:
+        if tag.owner_id != ctx.author.id and ctx.author.id not in config.OWNER_IDS:
             raise exceptions.ArgumentError(f'You do not own the tag with name `{name}`.')
 
         await self.bot.tag_manager.delete_tag(name=str(name))
