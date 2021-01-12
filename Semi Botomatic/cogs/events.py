@@ -155,7 +155,7 @@ class Events(commands.Cog):
         if len(error_traceback) < 2000:
             error_traceback = f'```py\n{error_traceback}\n```'
         else:
-            error_traceback = utils.safe_text(mystbin_client=self.bot.mystbin, text=error_traceback)
+            error_traceback = await utils.safe_text(mystbin_client=self.bot.mystbin, text=error_traceback)
 
         await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
