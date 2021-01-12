@@ -20,7 +20,7 @@ class Context(commands.Context):
         colour_roles = [role for role in self.author.roles if role.colour.value != 0]
 
         if not colour_roles:
-            return None
+            return discord.Colour(config.COLOUR)
 
         return colour_roles[0].colour
 
