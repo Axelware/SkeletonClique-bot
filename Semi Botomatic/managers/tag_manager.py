@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, TYPE_CHECKING, Dict
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 import discord
 import rapidfuzz
@@ -73,4 +73,3 @@ class TagManager:
         await self.bot.db.execute('DELETE FROM tags WHERE alias = $1', name)
 
         del self.tags[name]
-

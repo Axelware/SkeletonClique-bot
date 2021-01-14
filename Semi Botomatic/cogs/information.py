@@ -1,11 +1,11 @@
 import collections
-import time
 
 import discord
 import psutil
 from discord.ext import commands
 from discord.ext.alternatives import guild_converter
 
+import time
 from bot import SemiBotomatic
 from utilities import context, converters, exceptions, utils
 

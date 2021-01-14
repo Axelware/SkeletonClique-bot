@@ -260,3 +260,4 @@ class Tags(commands.Cog):
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Tags(bot=bot))
+

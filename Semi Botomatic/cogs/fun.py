@@ -1,6 +1,6 @@
 import collections
 import random
-from typing import Union, Optional
+from typing import Optional, Union
 
 import discord
 from discord.ext import commands
