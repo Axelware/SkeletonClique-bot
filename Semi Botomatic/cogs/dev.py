@@ -76,4 +76,3 @@ class Dev(commands.Cog):
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Dev(bot=bot))
-
