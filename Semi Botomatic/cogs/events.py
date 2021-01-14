@@ -159,6 +159,8 @@ class Events(commands.Cog):
 
         await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
 
+    #
+
     @commands.Cog.listener()
     async def on_socket_response(self, message: dict) -> None:
 
@@ -253,15 +255,14 @@ class Events(commands.Cog):
         if member.guild.id != config.SKELETON_CLIQUE_ID:
             return
 
-        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} just joined!**')
-        embed.set_footer(text=f'ID: {member.id}')
-
-        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
+        embed = discord.Embed(colour=discord.Colour(0x00FF00), title=f'`{member}` just joined', description=f'{member.mention}')
+        info = f'`Time joined:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
                f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
                f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
-               f'`Member count:` {len(member.guild.members)}\n' \
-
+               f'`Member count:` {len(member.guild.members)}\n'
         embed.add_field(name='Info:', value=info, inline=False)
+        embed.set_footer(text=f'ID: {member.id}')
+
         await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
 
     @commands.Cog.listener()
@@ -272,14 +273,14 @@ class Events(commands.Cog):
         if member.guild.id != config.SKELETON_CLIQUE_ID:
             return
 
-        embed = discord.Embed(colour=discord.Colour(config.COLOUR), description=f'**{member.mention} ({member}) just left!**')
+        embed = discord.Embed(colour=discord.Colour(0xFF0000), title=f'`{member}` just left', description=f'{member.mention}')
+        info = f'`Time left:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
+               f'`Join position:` {sorted(member.guild.members, key=lambda m: m.joined_at).index(member) + 1}\n' \
+               f'`Member count:` {len(member.guild.members)}\n' \
+               f'`Roles:` {" ".join([role.mention for role in member.roles][1:] if member.roles else ["None"])}'
+        embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
 
-        info = f'`Current Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n' \
-               f'`Member count:` {len(member.guild.members)}\n' \
-               f'Roles: {", ".join(role.mention for role in member.roles)}' \
-
-        embed.add_field(name='Info:', value=info, inline=False)
         await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
 
 
