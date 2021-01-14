@@ -40,7 +40,7 @@ class TagManager:
         return list(self.tags.values())
 
     def get_tags_matching(self, *, name: str, limit: int = 5) -> Optional[List[objects.Tag]]:
-        return [self.tags[tag_name] for tag_name in [match[0] for match in rapidfuzz.process.extract(query=name, choices=self.tags.keys(), limit=limit)]]
+        return [self.tags[tag_name] for tag_name in [match[0] for match in rapidfuzz.process.extract(query=name, choices=self.tags.keys(), limit=limit, processor=lambda s: s)]]
 
     def get_tags_owned_by(self, member: discord.Member) -> Optional[List[objects.Tag]]:
         return [tag for tag in self.tags.values() if tag.owner_id == member.id]

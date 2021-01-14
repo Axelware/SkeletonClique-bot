@@ -59,8 +59,10 @@ class TimezoneConverter(commands.Converter, ABC):
     async def convert(self, ctx: context.Context, argument: str) -> Timezone:
 
         if argument not in pendulum.timezones:
-            extra_message = '\n'.join(f'`{index + 1}.` {match[0]}' for index, match in enumerate(rapidfuzz.process.extract(query=argument, choices=pendulum.timezones, limit=5)))
-            raise exceptions.ArgumentError(f'That was not a recognised timezone. Maybe you meant one of these?\n{extra_message}')
+            msg = '\n'.join(f'`{index + 1}.` {match[0]}' for index, match in enumerate(
+                    rapidfuzz.process.extract(query=argument, choices=pendulum.timezones, limit=5, processor=lambda s: s)
+            ))
+            raise exceptions.ArgumentError(f'That was not a recognised timezone. Maybe you meant one of these?\n{msg}')
 
         return pendulum.timezone(argument)
 
