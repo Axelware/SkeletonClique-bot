@@ -218,7 +218,7 @@ class Player(slate.Player):
 
             if self.queue.is_empty:
 
-                timeout = 10
+                timeout = 120
 
                 try:
                     with async_timeout.timeout(timeout=timeout):
