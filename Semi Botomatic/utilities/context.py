@@ -27,7 +27,7 @@ class Context(commands.Context):
     @property
     def top_colour_role(self) -> Optional[discord.Colour]:
 
-        colour_roles = [role for role in self.author.roles if role.colour.value != 0]
+        colour_roles = list(reversed([role for role in self.author.roles if role.colour.value != 0]))
 
         if not colour_roles:
             return discord.Colour(config.COLOUR)
