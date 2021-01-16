@@ -10,6 +10,8 @@ from utilities import exceptions, objects, paginators
 
 class Context(commands.Context):
 
+    _guild_config = objects.GuildConfig(data={'embed_size': 'small'})
+
     @property
     def user_config(self) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
 
@@ -17,6 +19,10 @@ class Context(commands.Context):
             return self.bot.user_manager.default_user_config
 
         return self.bot.user_manager.get_user_config(user_id=self.author.id)
+
+    @property
+    def guild_config(self) -> Union[objects.DefaultGuildConfig, objects.GuildConfig]:
+        return self._guild_config
 
     @property
     def top_colour_role(self) -> Optional[discord.Colour]:
@@ -52,7 +58,7 @@ class Context(commands.Context):
         paginator = await self.paginate_embed(**kwargs)
 
         try:
-            response = await self.bot.wait_for('message', check=lambda msg: msg.author == self.author and msg.channel == self.channel, timeout=30.0)
+            response = await self.bot.wait_for('message', check=lambda msg: msg.author.id == self.author.id and msg.channel.id == self.channel.id, timeout=30.0)
         except asyncio.TimeoutError:
             raise exceptions.ArgumentError('You took too long to respond.')
 
@@ -62,10 +68,10 @@ class Context(commands.Context):
         except ValueError:
             raise exceptions.ArgumentError('That was not a valid number.')
         if response < 0 or response >= len(kwargs.get('entries')):
-            raise exceptions.ArgumentError('That was not one of the available options.')
+            raise exceptions.ArgumentError('That was not one of the available choices.')
 
         await paginator.stop()
-        return kwargs.get('entries')[response]
+        return response
 
     async def try_dm(self, **kwargs) -> Optional[discord.Message]:
 

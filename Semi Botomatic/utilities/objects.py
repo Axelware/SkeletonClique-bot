@@ -43,6 +43,8 @@ class DefaultUserConfig:
 
 class UserConfig:
 
+    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update'
+
     def __init__(self, data: dict) -> None:
 
         self.id: int = data.get('id', 0)
@@ -72,6 +74,29 @@ class UserConfig:
     @property
     def next_birthday(self) -> pendulum.datetime:
         return self.birthday.replace(year=self.birthday.year + self.age + 1)
+
+
+class DefaultGuildConfig:
+
+    __slots__ = 'embed_size'
+
+    def __init__(self) -> None:
+        self.embed_size = 'small'
+
+    def __repr__(self) -> str:
+        return f'<DefaultGuildConfig>'
+
+
+class GuildConfig:
+
+    __slots__ = 'embed_size'
+
+    def __init__(self, data: dict) -> None:
+
+        self.embed_size = data.get('embed_size', 'small')
+
+    def __repr__(self) -> str:
+        return f'<GuildConfig>'
 
 
 class Tag:
