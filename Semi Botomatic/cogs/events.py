@@ -274,10 +274,13 @@ class Events(commands.Cog):
         if member.guild.id != config.SKELETON_CLIQUE_ID:
             return
 
+        members = member.guild.members.copy()
+        members.append(member)
+
         embed = discord.Embed(colour=discord.Colour(0xFF0000), title=f'`{member}` just left', description=f'{member.mention}')
         info = f'`Time left:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
-               f'`Join position:` {sorted(member.guild.members, key=lambda m: m.joined_at).index(member) + 1}\n' \
-               f'`Member count:` {len(member.guild.members)}\n' \
+               f'`Join position:` {sorted(members, key=lambda m: m.joined_at).index(member) + 1}\n' \
+               f'`Member count:` {len(members) - 1}\n' \
                f'`Roles:` {" ".join([role.mention for role in member.roles][1:] if member.roles else ["None"])}'
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
