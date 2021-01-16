@@ -5,3 +5,7 @@ class SemiBotomaticError(Exception):
 
 class ArgumentError(SemiBotomaticError):
     pass
+
+
+class VoiceError(SemiBotomaticError):
+    pass
