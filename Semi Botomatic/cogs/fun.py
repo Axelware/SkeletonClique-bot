@@ -40,7 +40,7 @@ class Fun(commands.Cog):
         self.PREDICTIONS = {}
 
     @commands.command(name='8ball')
-    async def _8ball(self, ctx: context.Context, question: str = None) -> None:
+    async def _8ball(self, ctx: context.Context, *, question: str = None) -> None:
         """
         Predicts the future of your question...
 
