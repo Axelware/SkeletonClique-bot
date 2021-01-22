@@ -592,7 +592,7 @@ class Music(commands.Cog):
         if entry <= 0 or entry > len(ctx.voice_client.queue):
             raise exceptions.VoiceError(f'That was not a valid track entry. Choose a number between `1` and `{len(ctx.voice_client.queue)}` ')
 
-        item = await ctx.voice_client.queue.get(position=entry - 1, put_history=False)
+        item = ctx.voice_client.queue.get(position=entry - 1, put_history=False)
         await ctx.send(f'Removed `{item.title}` from the queue.')
 
     @queue.command(name='move')
