@@ -25,18 +25,17 @@ class Context(commands.Context):
         return self._guild_config
 
     @property
-    def top_colour_role(self) -> Optional[discord.Colour]:
+    def top_role_colour(self) -> Optional[discord.Colour]:
 
-        colour_roles = list(reversed([role for role in self.author.roles if role.colour.value != 0]))
-
-        if not colour_roles:
+        roles = list(reversed([role for role in self.author.roles if role.colour.value != 0]))
+        if not roles:
             return discord.Colour(config.COLOUR)
 
-        return colour_roles[0].colour
+        return roles[0].colour
 
     @property
     def colour(self):
-        return self.top_colour_role if isinstance(self.author, discord.Member) else discord.Colour(config.COLOUR)
+        return self.top_role_colour if isinstance(self.author, discord.Member) else discord.Colour(config.COLOUR)
 
     async def paginate(self, **kwargs) -> paginators.Paginator:
         paginator = paginators.Paginator(ctx=self, **kwargs)
