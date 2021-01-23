@@ -151,59 +151,79 @@ class Client:
 
     async def get_album(self, album_id: str, market: str = None) -> objects.album.Album:
 
-        response = await self._request(Request('GET', '/albums/{album_id}', album_id=album_id, params={'market': market} if market else None))
+        params = {}
+        if market:
+            params['market'] = market
+
+        response = await self._request(Request('GET', '/albums/{album_id}', album_id=album_id), params=params)
         return objects.album.Album(response)
 
-    async def get_album_tracks(self, album: Union[str, objects.album.Album, objects.album.SimpleAlbum], market: str = None, limit: int = None, offset: int = None):
+    async def get_album_all_tracks(
+            self, album: Union[str,  objects.album.SimpleAlbum, objects.album.Album], market: str = None
+    ) -> Union[objects.album.SimpleAlbum, objects.album.Album]:
 
         if isinstance(album, str):
             album = await self.get_album(album_id=album, market=market)
 
-        params = {}
+        if album.total_tracks <= 50:
+            return album
+
+        params = {'limit': 50, 'offset': 50}
         if market:
             params['market'] = market
-        if not limit:
-            params['limit'] = 50
 
-        if not offset or not limit:  # Fetch all the album's tracks.
+        for _ in range(1, math.ceil(album.total_tracks / 50)):
+            params.update({'offset': _ * 50})
+            paging_response = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album.id), params=params)
+            album.tracks.extend([objects.track.SimpleTrack(track_data) for track_data in objects.base.PagingObject(paging_response).items])
 
-            if isinstance(album, objects.album.SimpleAlbum):
+        return album
 
-                first50 = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album.id, params=params))
+    #
 
+    async def get_album_tracks(self, album_id: str, market: str = None, limit: int = 50, offset: int = 0) -> List[objects.track.SimpleTrack]:
 
-                for i in range(math.ceil(album.total_tracks // 50)):
-                    params['offset'] = i * 50
+        params = {'limit': limit, 'offset': offset}
+        if market:
+            params['market'] = market
 
-                    response = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album.id, params=params))
-                    tracks.extend([objects.track.SimpleTrack(track_data) for track_data in objects.base.PagingObject(response).items])
+        paging_response = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album_id), params=params)
+        return [objects.track.SimpleTrack(track_data) for track_data in objects.base.PagingObject(paging_response).items]
 
+    async def get_all_album_tracks(self, album_id: str, market: str = None) -> List[objects.track.SimpleTrack]:
 
+        params = {'limit': 50, 'offset': 0}
+        if market:
+            params['market'] = market
 
-        if limit:
-            params['limit'] = limit
-        if offset:
-            params['offset'] = offset
+        paging_response = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album_id), params=params)
+        paging = objects.base.PagingObject(paging_response)
 
+        tracks = [objects.track.SimpleTrack(track_data) for track_data in paging.items]
 
+        if paging.total <= 50:  # We already have the first 50 so we can just return.
+            return tracks
 
-        response = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album_id, params={'market': market} if market else None))
+        for _ in range(1, math.ceil(paging.total / 50)):
+            params.update({'offset': _ * 50})
 
+            paging_response = await self._request(Request('GET', '/albums/{album_id}/tracks', album_id=album_id), params=params)
+            tracks.extend([objects.track.SimpleTrack(track_data) for track_data in objects.base.PagingObject(paging_response).items])
 
+        return tracks
 
+    #
 
-
-
-    async def get_artist(self, artist_id: str) -> objects.artist.Artist:
-        request = await self._request(Request('GET', '/artists/{artist_id}', artist_id=artist_id))
+    async def get_artist(self, artist_id: str, market: str = None) -> objects.artist.Artist:
+        request = await self._request(Request('GET', '/artists/{artist_id}', artist_id=artist_id), params={'market': market} if market else None)
         return objects.artist.Artist(request)
 
-    async def get_track(self, track_id: str) -> objects.track.Track:
-        request = await self._request(Request('GET', '/tracks/{track_id}', track_id=track_id))
+    async def get_track(self, track_id: str, market: str = None) -> objects.track.Track:
+        request = await self._request(Request('GET', '/tracks/{track_id}', track_id=track_id), params={'market': market} if market else None)
         return objects.track.Track(request)
 
-    async def get_playlist(self, playlist_id: str) -> objects.playlist.Playlist:
-        request = await self._request(Request('GET', '/playlists/{playlist_id}', playlist_id=playlist_id))
+    async def get_playlist(self, playlist_id: str, market: str = None) -> objects.playlist.Playlist:
+        request = await self._request(Request('GET', '/playlists/{playlist_id}', playlist_id=playlist_id), params={'market': market} if market else None)
         return objects.playlist.Playlist(request)
 
     #
