@@ -5,8 +5,9 @@ from utilities.spotify.objects import followers, image, base
 
 class ExplicitContentSettings:
 
-    def __init__(self, data: dict) -> None:
+    __slots__ = 'data', 'filter_enabled', 'filter_locked'
 
+    def __init__(self, data: dict) -> None:
         self.data = data
 
         self.filter_enabled = data.get('filter_enabled')
@@ -17,6 +18,8 @@ class ExplicitContentSettings:
 
 
 class User(base.BaseObject):
+
+    __slots__ = 'country', 'email', 'explicit_content_settings', 'external_urls', 'followers', 'images', 'has_premium'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

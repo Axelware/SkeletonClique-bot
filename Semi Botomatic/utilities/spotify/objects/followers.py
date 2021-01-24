@@ -2,8 +2,9 @@
 
 class Followers:
 
-    def __init__(self, data: dict) -> None:
+    __slots__ = 'data', 'href', 'total'
 
+    def __init__(self, data: dict) -> None:
         self.data = data
 
         self.href = data.get('href')

@@ -5,6 +5,8 @@ from utilities.spotify.objects import base, followers, image
 
 class SimpleArtist(base.BaseObject):
 
+    __slots__ = 'external_urls'
+
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
@@ -19,6 +21,8 @@ class SimpleArtist(base.BaseObject):
 
 
 class Artist(base.BaseObject):
+
+    __slots__ = 'external_urls', 'followers', 'genres', 'images', 'popularity'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

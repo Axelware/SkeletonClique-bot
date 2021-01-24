@@ -5,6 +5,8 @@ from utilities.spotify.objects import artist, base, copyright, image, track
 
 class AlbumRestriction:
 
+    __slots__ = 'data', 'reason'
+
     def __init__(self, data: dict) -> None:
         self.data = data
 
@@ -15,6 +17,8 @@ class AlbumRestriction:
 
 
 class SimpleAlbum(base.BaseObject):
+
+    __slots__ = 'album_type', 'artists', 'available_markets', 'external_urls', 'images', 'release_date', 'release_data_precision', 'total_tracks'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -29,7 +33,7 @@ class SimpleAlbum(base.BaseObject):
         self.total_tracks: int = data.get('total_tracks', 0)
 
     def __repr__(self) -> str:
-        return f'<spotify.SimpleAlbum name=\'{self.name}\' id=\'{self.id}\' url=\'<{self.url}>\' artists={self.artists}>'
+        return f'<spotify.SimpleAlbum name=\'{self.name}\' id=\'{self.id}\' url=\'<{self.url}>\' total_tracks=\'{self.total_tracks}\'>'
 
     @property
     def url(self) -> Optional[str]:
@@ -43,6 +47,9 @@ class SimpleAlbum(base.BaseObject):
 
 
 class Album(base.BaseObject):
+
+    __slots__ = 'album_type', 'artists', 'available_markets', 'copyrights', 'external_ids', 'external_urls', 'genres', 'images', 'label', 'popularity', 'release_date', \
+                'release_data_precision', 'total_tracks', '_tracks_paging', 'tracks'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -70,4 +77,3 @@ class Album(base.BaseObject):
     @property
     def url(self) -> Optional[str]:
         return self.external_urls.get('spotify')
-

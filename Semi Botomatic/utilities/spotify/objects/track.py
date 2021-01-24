@@ -5,6 +5,8 @@ from utilities.spotify.objects import album, artist, base, image, user
 
 class TrackRestriction:
 
+    __slots__ = 'data', 'reason'
+
     def __init__(self, data: dict) -> None:
 
         self.data = data
@@ -16,6 +18,8 @@ class TrackRestriction:
 
 
 class SimpleTrack(base.BaseObject):
+
+    __slots__ = 'artists', 'available_markets', 'disc_number', 'duration', 'is_explicit', 'external_urls', 'is_local', 'preview_url', 'track_number'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -46,6 +50,9 @@ class SimpleTrack(base.BaseObject):
 
 
 class Track(base.BaseObject):
+
+    __slots__ = 'album', 'artists', 'available_markets', 'disc_number', 'duration', 'is_explicit', 'external_urls', 'external_ids', 'is_local', 'popularity', 'preview_url', \
+                'track_number'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -83,6 +90,9 @@ class Track(base.BaseObject):
 
 
 class PlaylistTrack(base.BaseObject):
+
+    __slots__ = 'added_at', 'added_by', 'primary_colour', 'video_thumbnail', 'album', 'artists', 'available_markets', 'disc_number', 'duration', 'is_explicit', 'external_urls', \
+                'external_ids', 'is_local', 'popularity', 'preview_url', 'track_number', 'is_episode', 'track_is_local', 'is_track'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

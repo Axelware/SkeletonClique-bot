@@ -3,6 +3,8 @@ from typing import Optional, Literal
 
 class Copyright:
 
+    __slots__ = 'data', 'text', 'type'
+
     def __init__(self, data: dict) -> None:
         self.data = data
 

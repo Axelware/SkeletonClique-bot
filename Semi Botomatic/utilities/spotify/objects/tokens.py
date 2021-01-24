@@ -13,6 +13,8 @@ TOKEN_URL = 'https://accounts.spotify.com/api/token'
 
 class AppAuthToken:
 
+    __slots__ = 'access_token', 'token_type', 'expires_in', 'scope', '_time_last_authorized'
+
     def __init__(self, *, access_token: str, token_type: str, expires_in: int, scope: str = None) -> None:
 
         self.access_token: str = access_token
@@ -21,6 +23,9 @@ class AppAuthToken:
         self.scope: str = scope
 
         self._time_last_authorized = time.time()
+
+    def __repr__(self) -> str:
+        return f'<spotify.AppAuthToken token_type=\'{self.token_type}\' expires_in=\'{self.expires_in}\'>'
 
     @property
     def has_expired(self) -> bool:
@@ -68,6 +73,8 @@ class AppAuthToken:
 
 class UserAuthToken:
 
+    __slots__ = 'access_token', 'token_type', 'expires_in', 'scopes', 'refresh_token', '_time_last_authorized'
+
     def __init__(self, *, access_token: str, token_type: str, expires_in: int, scope: str, refresh_token: str = None) -> None:
 
         self.access_token: str = access_token
@@ -77,6 +84,9 @@ class UserAuthToken:
         self.refresh_token: str = refresh_token
 
         self._time_last_authorized = time.time()
+
+    def __repr__(self) -> str:
+        return f'<spotify.UserAuthToken token_type=\'{self.token_type}\' expires_in=\'{self.expires_in}\'>'
 
     @property
     def has_expired(self) -> bool:

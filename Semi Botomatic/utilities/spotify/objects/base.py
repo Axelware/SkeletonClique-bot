@@ -1,9 +1,29 @@
 
+class BaseObject:
+
+    __slots__ = 'data', 'href', 'id', 'name', 'type', 'uri'
+
+    def __init__(self, data: dict) -> None:
+        self.data = data
+
+        self.href = data.get('href')
+        self.id = data.get('id')
+        self.name = data.get('name')
+        self.type = data.get('type')
+        self.uri = data.get('uri')
+
+    def __repr__(self) -> str:
+        return f'<spotify.BaseObject id=\'{self.id}\' name=\'{self.name}\'>'
+
+    def __str__(self) -> str:
+        return self.name
+
 
 class PagingObject:
 
-    def __init__(self, data: dict) -> None:
+    __slots__ = 'data', 'href', 'items', 'limit', 'next', 'offset', 'previous', 'total'
 
+    def __init__(self, data: dict) -> None:
         self.data = data
 
         self.href = data.get('href')
@@ -15,20 +35,4 @@ class PagingObject:
         self.total = data.get('total')
 
     def __repr__(self) -> str:
-        return '<spotify.PagingObject>'
-
-
-class BaseObject:
-
-    def __init__(self, data: dict) -> None:
-
-        self.data = data
-
-        self.href: str = data.get('href')
-        self.id: str = data.get('id')
-        self.name: str = data.get('name')
-        self.type: str = data.get('type')
-        self.uri: str = data.get('uri')
-
-    def __str__(self) -> str:
-        return self.name
+        return f'<spotify.PagingObject total={self.total} offset={self.offset} limit={self.limit}>'

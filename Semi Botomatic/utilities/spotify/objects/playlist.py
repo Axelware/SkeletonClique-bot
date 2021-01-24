@@ -5,6 +5,8 @@ from utilities.spotify.objects import base, followers, image, track, user
 
 class SimplePlaylist(base.BaseObject):
 
+    __slots__ = 'collaborative', 'description', 'external_urls', 'images', 'owner', 'primary_colour', 'is_public', 'snapshot_id', 'total_tracks'
+
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
@@ -19,7 +21,7 @@ class SimplePlaylist(base.BaseObject):
         self.total_tracks: int = data.get('tracks', {}).get('total', 0)
 
     def __repr__(self) -> str:
-        return f'<spotify.SimplePlaylist name=\'{self.name}\' id=\'{self.id}\' url=\'<{self.url}>\'>'
+        return f'<spotify.SimplePlaylist name=\'{self.name}\' id=\'{self.id}\' url=\'<{self.url}>\' total_tracks=\'{self.total_tracks}\'>'
 
     @property
     def url(self) -> Optional[str]:
@@ -27,6 +29,9 @@ class SimplePlaylist(base.BaseObject):
 
 
 class Playlist(base.BaseObject):
+
+    __slots__ = 'collaborative', 'description', 'external_urls', 'followers', 'images', 'owner', 'primary_colour', 'is_public', 'snapshot_id', 'total_tracks', '_tracks_paging', \
+                'tracks'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -41,10 +46,12 @@ class Playlist(base.BaseObject):
         self.is_public: bool = data.get('public', False)
         self.snapshot_id: Optional[str] = data.get('snapshot_id', None)
         self.total_tracks: int = data.get('tracks', {}).get('total', 0)
-        self.tracks: List[Optional[track.PlaylistTrack]] = [track.PlaylistTrack(track_data) for track_data in base.PagingObject(data.get('tracks', [])).items]
+
+        self._tracks_paging = base.PagingObject(data.get('tracks', []))
+        self.tracks: List[Optional[track.PlaylistTrack]] = [track.PlaylistTrack(track_data) for track_data in self._tracks_paging.items]
 
     def __repr__(self) -> str:
-        return f'<spotify.Playlist name=\'{self.name}\' id=\'{self.id}\' url=\'<{self.url}>\'>'
+        return f'<spotify.Playlist name=\'{self.name}\' id=\'{self.id}\' url=\'<{self.url}>\' total_tracks=\'{self.total_tracks}\'>'
 
     @property
     def url(self) -> Optional[str]:
