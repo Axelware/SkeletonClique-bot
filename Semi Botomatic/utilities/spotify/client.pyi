@@ -54,8 +54,3 @@ class Client:
 
     #
 
-    async def get_playlist(self, playlist_id: str, market: str=...) -> objects.playlist.Playlist: ...
-
-    #
-
-    async def recommendations(self, *, limit: int=..., **p: Any) -> Any: ...

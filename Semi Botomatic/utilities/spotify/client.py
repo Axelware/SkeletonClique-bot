@@ -253,8 +253,8 @@ class Client:
         response = await self._request(objects.Request('GET', '/tracks'), auth_token, parameters=parameters)
         return {track_id: track for track_id, track in zip(track_ids, [objects.Track(data) if data is not None else None for data in response.get('tracks')])}
 
-    async def get_track(self, track_id, market=None):
-        response = await self._request(objects.Request('GET', '/tracks/{track_id}', track_id=track_id), parameters={'market': market} if market else None)
+    async def get_track(self, track_id, market=None, auth_token=None):
+        response = await self._request(objects.Request('GET', '/tracks/{track_id}', track_id=track_id), auth_token, parameters={'market': market} if market else None)
         return objects.Track(response)
 
     async def get_tracks_audio_features(self, track_ids, *, auth_token=None):
