@@ -4,7 +4,7 @@ import json
 import math
 
 import config
-from utilities.spotify import exceptions, objects
+from utilities.spotify import exceptions, objects, utils
 
 EXCEPTIONS = {
     400: exceptions.BadRequest,
@@ -44,13 +44,6 @@ SCOPES = [
     'user-read-email',
     'user-read-private',
 ]
-
-
-async def _json_or_text(request):
-
-    if request.headers['Content-Type'] == 'application/json; charset=utf-8':
-        return await request.json()
-    return await request.text()
 
 
 class Client:
@@ -103,7 +96,11 @@ class Client:
         }
 
         async with self.bot.session.request(request.method, request.url, headers=headers, params=parameters) as request:
-            data = await _json_or_text(request)
+
+            if request.status == 204:
+                return None
+
+            data = await utils._json_or_text(request)
 
             if 200 <= request.status < 300:
                 print(json.dumps(data, indent=4))
@@ -112,7 +109,123 @@ class Client:
             if error := data.get('error'):
                 raise EXCEPTIONS.get(error.get('status'))(error)
 
-    #
+    # SEARCH API
+
+    async def search(self, query, search_types=None, market=None, limit=50, offset=0, include_external=False, auth_token=None):
+
+        if search_types is None:
+            search_types = [objects.SearchType.ALBUM, objects.SearchType.ARTIST, objects.SearchType.PLAYLIST, objects.SearchType.TRACK]
+
+        parameters = {'query': query.replace(' ', '+'), 'limit': limit, 'offset': offset, 'type': ','.join(search_type.value for search_type in search_types)}
+        if market:
+            parameters['market'] = market
+        if include_external is True:
+            parameters['include_external'] = 'audio'
+
+        paging_response = await self._request(objects.Request('GET', '/search'), auth_token, parameters=parameters)
+        return objects.SearchResult(paging_response)
+
+    # BROWSE API
+
+    async def get_new_releases(self, *, country=None, limit=50, offset=0): ...
+    async def get_featured_playlists(self): ...
+    async def get_all_categories(self): ...
+    async def get_category(self): ...
+    async def get_category_playlist(self): ...
+
+    async def get_recommendations(self, seed, *, limit=50, market=None, auth_token=None):
+
+        seed.parameters.update({'limit': limit})
+        if market:
+            seed.parameters['market'] = market
+
+        response = await self._request(objects.Request('GET', '/recommendations'), auth_token, parameters=seed.parameters)
+        return objects.Recommendation(response)
+
+    async def get_recommendation_genres(self, *, auth_token=None):
+
+        response = await self._request(objects.Request('GET', '/recommendations/available-genre-seeds'), auth_token)
+        return response
+
+    # PLAYLIST API
+
+    ...
+
+    # ARTISTS API
+
+    async def get_artists(self, artist_ids, *, market=None, auth_token=None):
+
+        if len(artist_ids) > 50:
+            raise exceptions.TooManyIDs('\'get_artists\' can only take a maximum of 50 artists ids.')
+
+        parameters = {'ids': ','.join(artist_ids)}
+        if market:
+            parameters['market'] = market
+
+        response = await self._request(objects.Request('GET', '/artists'), auth_token, parameters=parameters)
+        return {artist_id: artist for artist_id, artist in zip(artist_ids, [objects.Artist(data) if data is not None else None for data in response.get('artists')])}
+
+    async def get_artist(self, artist_id, *, market=None, auth_token=None):
+        response = await self._request(objects.Request('GET', '/artists/{artist_id}', artist_id=artist_id), auth_token, parameters={'market': market} if market else None)
+        return objects.Artist(response)
+
+    async def get_artist_top_tracks(self, artist_id, *, market='GB', auth_token=None):
+        request = objects.Request('GET', '/artists/{artist_id}/top-tracks', artist_id=artist_id)
+        response = await self._request(request, auth_token, parameters={'market': market} if market else None)
+        return [objects.Track(data) for data in response.get('tracks')]
+
+    async def get_related_artists(self, artist_id, *, market=None, auth_token=None):
+        request = objects.Request('GET', '/artists/{artist_id}/related-artists', artist_id=artist_id)
+        response = await self._request(request, auth_token, parameters={'market': market} if market else None)
+        return [objects.Artist(data) for data in response.get('artists')]
+
+    async def get_artist_albums(self, artist_id, *, market=None, include_groups=None, limit=50, offset=0, auth_token=None):
+
+        if include_groups is None:
+            include_groups = [objects.IncludeGroups.album]
+
+        parameters = {'limit': limit, 'offset': offset, 'include_groups': ','.join(include_group.value for include_group in include_groups)}
+        if market:
+            parameters['market'] = market
+
+        paging_response = await self._request(objects.Request('GET', '/artists/{artist_id}/albums', artist_id=artist_id), auth_token, parameters=parameters)
+        return [objects.SimpleAlbum(data) for data in objects.PagingObject(paging_response).items]
+
+    async def get_all_artist_albums(self, artist_id, *, market=None, include_groups=None, auth_token=None):
+
+        if include_groups is None:
+            include_groups = [objects.IncludeGroups.album]
+
+        parameters = {'limit': 50, 'offset': 0, 'include_groups': ','.join(include_group.value for include_group in include_groups)}
+        if market:
+            parameters['market'] = market
+
+        paging_response = await self._request(objects.Request('GET', '/artists/{artist_id}/albums', artist_id=artist_id), auth_token, parameters=parameters)
+        paging = objects.PagingObject(paging_response)
+        albums = [objects.SimpleAlbum(data) for data in paging.items]
+
+        if paging.total <= 50:  # We already have the first 50 so we can just return the albums we have so far.
+            return albums
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            parameters['offset'] = _ * 50
+            paging_response = await self._request(objects.Request('GET', '/artists/{artist_id}/albums', artist_id=artist_id), auth_token, parameters=parameters)
+            albums.extend([objects.SimpleAlbum(data) for data in objects.PagingObject(paging_response).items])
+
+        return albums
+
+    # PLAYER API
+
+    async def get_user_current_playback(self, *, market=None, auth_token):
+
+        response = await self._request(objects.Request('GET', '/me/player'), auth_token, parameters={'market': market} if market else None)
+        print(response)
+        if response is None:
+            return None
+
+        return objects.CurrentlyPlayingContext(response)
+
+    # ALBUMS API
 
     async def get_albums(self, album_ids, *, market=None, auth_token=None):
 
@@ -176,70 +289,7 @@ class Client:
 
         return tracks
 
-    #
-
-    async def get_artists(self, artist_ids, *, market=None, auth_token=None):
-
-        if len(artist_ids) > 50:
-            raise exceptions.TooManyIDs('\'get_artists\' can only take a maximum of 50 artists ids.')
-
-        parameters = {'ids': ','.join(artist_ids)}
-        if market:
-            parameters['market'] = market
-
-        response = await self._request(objects.Request('GET', '/artists'), auth_token, parameters=parameters)
-        return {artist_id: artist for artist_id, artist in zip(artist_ids, [objects.Artist(data) if data is not None else None for data in response.get('artists')])}
-
-    async def get_artist(self, artist_id, *, market=None, auth_token=None):
-        response = await self._request(objects.Request('GET', '/artists/{artist_id}', artist_id=artist_id), auth_token, parameters={'market': market} if market else None)
-        return objects.Artist(response)
-
-    async def get_artist_top_tracks(self, artist_id, *, market='GB', auth_token=None):
-        request = objects.Request('GET', '/artists/{artist_id}/top-tracks', artist_id=artist_id)
-        response = await self._request(request, auth_token, parameters={'market': market} if market else None)
-        return [objects.Track(data) for data in response.get('tracks')]
-
-    async def get_related_artists(self, artist_id, *, market=None, auth_token=None):
-        request = objects.Request('GET', '/artists/{artist_id}/related-artists', artist_id=artist_id)
-        response = await self._request(request, auth_token, parameters={'market': market} if market else None)
-        return [objects.Artist(data) for data in response.get('artists')]
-
-    async def get_artist_albums(self, artist_id, *, market=None, include_groups=None, limit=50, offset=0, auth_token=None):
-
-        if include_groups is None:
-            include_groups = [objects.IncludeGroups.album]
-
-        parameters = {'limit': limit, 'offset': offset, 'include_groups': ','.join(include_group.value for include_group in include_groups)}
-        if market:
-            parameters['market'] = market
-
-        paging_response = await self._request(objects.Request('GET', '/artists/{artist_id}/albums', artist_id=artist_id), auth_token, parameters=parameters)
-        return [objects.SimpleAlbum(data) for data in objects.PagingObject(paging_response).items]
-
-    async def get_all_artist_albums(self, artist_id, *, market=None, include_groups=None, auth_token=None):
-
-        if include_groups is None:
-            include_groups = [objects.IncludeGroups.album]
-
-        parameters = {'limit': 50, 'offset': 0, 'include_groups': ','.join(include_group.value for include_group in include_groups)}
-        if market:
-            parameters['market'] = market
-
-        paging_response = await self._request(objects.Request('GET', '/artists/{artist_id}/albums', artist_id=artist_id), auth_token, parameters=parameters)
-        paging = objects.PagingObject(paging_response)
-        albums = [objects.SimpleAlbum(data) for data in paging.items]
-
-        if paging.total <= 50:  # We already have the first 50 so we can just return the albums we have so far.
-            return albums
-
-        for _ in range(1, math.ceil(paging.total / 50)):
-            parameters['offset'] = _ * 50
-            paging_response = await self._request(objects.Request('GET', '/artists/{artist_id}/albums', artist_id=artist_id), auth_token, parameters=parameters)
-            albums.extend([objects.SimpleAlbum(data) for data in objects.PagingObject(paging_response).items])
-
-        return albums
-
-    #
+    # TRACKS API
 
     async def get_tracks(self, track_ids, *, market=None, auth_token=None):
 

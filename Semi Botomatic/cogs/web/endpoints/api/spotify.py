@@ -6,7 +6,7 @@ import aiohttp.web
 
 import config
 from utilities.enums import Editables, Operations
-from utilities.spotify import exceptions, objects
+from utilities.spotify import objects, exceptions
 
 if TYPE_CHECKING:
     from bot import SemiBotomatic

@@ -1,9 +1,9 @@
 from typing import Dict, List, Optional
 
-from utilities.spotify.objects import base, followers, image
+from utilities.spotify import objects
 
 
-class SimpleArtist(base.BaseObject):
+class SimpleArtist(objects.BaseObject):
 
     __slots__ = 'external_urls'
 
@@ -20,7 +20,7 @@ class SimpleArtist(base.BaseObject):
         return self.external_urls.get('spotify')
 
 
-class Artist(base.BaseObject):
+class Artist(objects.BaseObject):
 
     __slots__ = 'external_urls', 'followers', 'genres', 'images', 'popularity'
 
@@ -28,9 +28,9 @@ class Artist(base.BaseObject):
         super().__init__(data)
 
         self.external_urls: Dict[Optional[str], Optional[str]] = data.get('external_urls', {})
-        self.followers: followers.Followers = followers.Followers(data.get('followers'))
+        self.followers: objects.Followers = objects.Followers(data.get('followers'))
         self.genres: List[Optional[str]] = data.get('genres', [])
-        self.images: List[Optional[image.Image]] = [image.Image(image_data) for image_data in data.get('images', [])]
+        self.images: List[Optional[objects.Image]] = [objects.Image(image_data) for image_data in data.get('images', [])]
         self.popularity: int = data.get('popularity', 0)
 
     def __repr__(self) -> str:

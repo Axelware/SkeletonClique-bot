@@ -27,7 +27,8 @@ class Radio(commands.Cog):
               f'response_type=code&' \
               f'redirect_uri=http://{config.WEB_URL}/api/spotify/callback&' \
               f'state={list(self.bot.spotify.user_auth_states.keys())[list(self.bot.spotify.user_auth_states.values()).index(ctx.author.id)]}&' \
-              f'scope=user-read-recently-played+user-top-read+user-read-currently-playing+playlist-read-private+playlist-read-collaborative+user-read-private&' \
+              f'scope=user-read-recently-played+user-top-read+user-read-currently-playing+playlist-read-private+playlist-read-collaborative+user-read-private+' \
+              f'user-read-playback-state&' \
               f'show_dialog=True'
 
         embed = discord.Embed(colour=ctx.colour, title='Spotify authorisation link:',
@@ -38,6 +39,21 @@ class Radio(commands.Cog):
             await ctx.author.send(embed=embed)
         except discord.Forbidden:
             raise exceptions.VoiceError('I am unable to send direct messages to you, please enable them so that I can DM you your spotify authorisation link.')
+
+    @commands.group(name='radio', aliases=['r'], invoke_without_command=True)
+    async def radio(self, ctx: context.Context) -> None:
+        await ctx.send('hi yes radio time :pog:')
+
+    @radio.command(name='start')
+    async def radio_start(self, ctx: context.Context) -> None:
+
+        if not ctx.voice_client or not ctx.voice_client.is_connected:
+            await ctx.invoke(self.bot.cogs['Music'].join)
+
+        channel = getattr(ctx.author.voice, 'channel', None)
+        if not channel or channel.id != ctx.voice_client.channel.id:
+            raise exceptions.VoiceError(f'You must be connected to the same voice channel as me to use this command.')
+
 
 
 def setup(bot: SemiBotomatic):

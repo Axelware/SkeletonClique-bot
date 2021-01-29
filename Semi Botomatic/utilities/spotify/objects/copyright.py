@@ -1,4 +1,6 @@
-from typing import Optional, Literal
+from typing import Optional
+
+from utilities.spotify import objects
 
 
 class Copyright:
@@ -8,8 +10,8 @@ class Copyright:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.text: Optional[str] = data.get('text', None)
-        self.type: Optional[Literal['C', 'P']] = data.get('type', None)
+        self.text: Optional[str] = data.get('text')
+        self.type: objects.CopyrightType = objects.CopyrightType(data.get('type', 'C'))
 
     def __repr__(self) -> str:
-        return f'<spotify.Copyright type={self.type}>'
+        return f'<spotify.Copyright type={self.type!r}>'

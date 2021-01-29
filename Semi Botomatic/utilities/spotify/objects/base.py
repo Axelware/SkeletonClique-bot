@@ -1,3 +1,5 @@
+from typing import Dict, List, Optional
+
 
 class BaseObject:
 
@@ -6,11 +8,11 @@ class BaseObject:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.href = data.get('href')
-        self.id = data.get('id')
-        self.name = data.get('name')
-        self.type = data.get('type')
-        self.uri = data.get('uri')
+        self.href: str = data.get('href')
+        self.id: str = data.get('id')
+        self.name: str = data.get('name')
+        self.type: str = data.get('type')
+        self.uri: str = data.get('uri')
 
     def __repr__(self) -> str:
         return f'<spotify.BaseObject id=\'{self.id}\' name=\'{self.name}\'>'
@@ -26,13 +28,13 @@ class PagingObject:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.href = data.get('href')
-        self.items = data.get('items')
-        self.limit = data.get('limit')
-        self.next = data.get('next')
-        self.offset = data.get('offset')
-        self.previous = data.get('previous')
-        self.total = data.get('total')
+        self.href: str = data.get('href')
+        self.items: List[Dict] = data.get('items')
+        self.limit: int = data.get('limit')
+        self.next: Optional[str] = data.get('next')
+        self.offset: int = data.get('offset')
+        self.previous: Optional[str] = data.get('previous')
+        self.total: int = data.get('total')
 
     def __repr__(self) -> str:
         return f'<spotify.PagingObject total={self.total} offset={self.offset} limit={self.limit}>'

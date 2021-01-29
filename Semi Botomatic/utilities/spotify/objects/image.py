@@ -8,7 +8,7 @@ class Image:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.url: Optional[str] = data.get('url', None)
+        self.url: str = data.get('url')
         self.width: Optional[int] = data.get('width', None)
         self.height: Optional[int] = data.get('height', None)
 
