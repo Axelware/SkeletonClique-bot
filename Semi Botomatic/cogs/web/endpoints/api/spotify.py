@@ -66,5 +66,3 @@ def setup(app: aiohttp.web.Application) -> None:
     app.add_routes([
         aiohttp.web.get(r'/api/spotify/callback', spotify.get),
     ])
-
-#Penis
