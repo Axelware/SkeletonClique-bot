@@ -37,6 +37,7 @@ class Radio(commands.Cog):
 
         try:
             await ctx.author.send(embed=embed)
+            await ctx.send('Sent you a DM!')
         except discord.Forbidden:
             raise exceptions.VoiceError('I am unable to send direct messages to you, please enable them so that I can DM you your spotify authorisation link.')
 

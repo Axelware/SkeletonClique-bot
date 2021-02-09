@@ -1,5 +1,6 @@
 import collections
 import random
+import urllib.parse
 from typing import Optional, Union
 
 import discord
@@ -107,6 +108,30 @@ class Fun(commands.Cog):
         counter = collections.Counter(random.choice(list(map(str, choices))) for _ in range(times))
         entries = [f'{item[:15] + (item[15:] and ".."):17} | {count / times:.2%}' for item, count in counter.most_common()]
         await ctx.paginate_embed(entries=entries, per_page=10, codeblock=True, header=f'Choice            | Percentage\n')
+        
+    @commands.command(name='book')
+    async def book(self, ctx: context.Context, *, language: str = None) -> None:
+
+        if language:
+            async with self.bot.session.get(f'https://senpy.tk/api/v1/{urllib.parse.quote(language)}') as request:
+
+                if await request.text() == 'Invalid API Endpoint.':
+                    raise exceptions.ArgumentError('That was not a valid language.')
+
+                data = await request.json()
+                language = data.get('language')
+                image = data.get('random')
+
+        else:
+
+            async with self.bot.session.get('https://senpy.tk/api/v1') as request:
+                data = await request.json()
+                language = data.get('imagerandomlanguage')
+                image = data.get('imagerandom')
+
+        embed = discord.Embed(colour=ctx.colour, title=f'{language}!')
+        embed.set_image(url=f'https://github.com/laynH/Anime-Girls-Holding-Programming-Books/blob/master/{urllib.parse.quote(language)}/{urllib.parse.quote(image)}?raw=true')
+        await ctx.send(embed=embed)
 
 
 def setup(bot: SemiBotomatic):
