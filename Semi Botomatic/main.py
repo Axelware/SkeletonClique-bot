@@ -14,7 +14,7 @@ from bot import SemiBotomatic
 @contextlib.contextmanager
 def logger():
 
-    logs = {'discord': None, 'bot': None, 'cogs': None, 'utilities': None, 'slate': None}
+    logs = {'discord': None, 'bot': None, 'cogs': None, 'utilities': None, 'slate': None, 'aiohttp': None}
 
     for log_name in logs:
 
@@ -32,6 +32,7 @@ def logger():
     logs['cogs'].setLevel(logging.DEBUG)
     logs['utilities'].setLevel(logging.DEBUG)
     logs['slate'].setLevel(logging.DEBUG)
+    logs['aiohttp'].setLevel(logging.DEBUG)
 
     try:
         yield
