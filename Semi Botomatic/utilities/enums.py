@@ -22,3 +22,5 @@ class Editables(enum.Enum):
 
     birthday = 'birthday'
     birthday_private = 'birthday_private'
+
+    spotify_refresh_token = 'spotify_refresh_token'

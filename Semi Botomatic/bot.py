@@ -13,7 +13,7 @@ from discord.ext import commands
 
 import config
 from managers import reminder_manager, tag_manager, user_manager
-from utilities import context, help
+from utilities import context, help, spotify
 from cogs.web import main
 
 __log__ = logging.getLogger(__name__)
@@ -42,6 +42,7 @@ class SemiBotomatic(commands.AutoShardedBot):
         self.first_ready: bool = True
 
         self.db: Optional[asyncpg.pool.Pool] = None
+        self.spotify: Optional[spotify.client.Client] = None
         self.semi_botomatic_web: Optional[main.SemiBotomaticWeb] = None
 
         self.user_manager: user_manager.UserManager = user_manager.UserManager(bot=self)

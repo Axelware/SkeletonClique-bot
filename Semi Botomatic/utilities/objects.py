@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import List
+from typing import List, Optional
 
 import pendulum
 from pendulum.datetime import DateTime
@@ -8,7 +8,7 @@ from pendulum.tz.timezone import Timezone
 
 class DefaultUserConfig:
 
-    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update'
+    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', 'spotify_refresh_token'
 
     def __init__(self) -> None:
 
@@ -19,6 +19,8 @@ class DefaultUserConfig:
         
         self.birthday: DateTime = pendulum.DateTime(2020, 1, 1, 0, 0, 0, tzinfo=pendulum.timezone('UTC'))
         self.birthday_private: bool = False
+
+        self.spotify_refresh_token: Optional[str] = None
 
         self.reminders = []
         self.requires_db_update = []
@@ -43,7 +45,7 @@ class DefaultUserConfig:
 
 class UserConfig:
 
-    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update'
+    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', 'spotify_refresh_token'
 
     def __init__(self, data: dict) -> None:
 
@@ -54,6 +56,8 @@ class UserConfig:
 
         self.birthday: DateTime = pendulum.parse(data.get('birthday', dt.datetime.now()).isoformat(), tz=self.timezone)
         self.birthday_private: bool = data.get('birthday_private', False)
+
+        self.spotify_refresh_token: Optional[str] = data.get('spotify_refresh_token', None)
 
         self.reminders: List[Reminder] = []
         self.requires_db_update: List[str] = []
