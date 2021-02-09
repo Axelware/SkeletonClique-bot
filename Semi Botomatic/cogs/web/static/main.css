@@ -1,0 +1,54 @@
+:root {
+    --bandito-yellow: #fce300;
+    --darker-bandito-yellow: #CEBA00;
+
+    --camo-green: #595B3C;
+    --bayou-blue: #A7CAC3;
+    --rebel-red: #A75158;
+    --bag-beige: #7A7157;
+
+    --vulture-black: #1E1E1E;
+    --darker-vulture-black: #161616;
+
+    --black: #000000;
+    --white: #FFFFFF;
+}
+
+
+body {
+    background-color: var(--bandito-yellow);
+}
+
+
+/* Boostrap cards */
+.card {
+    background: var(--vulture-black);
+    color: var(--white);
+}
+
+
+/* Boostrap forms */
+.form-control {
+    background: var(--vulture-black);
+    border: 1px solid var(--vulture-black);
+    transition: background 0.5s;
+    color: var(--white);
+}
+
+.form-control:active,
+.form-control:focus,
+.form-control:focus:active {
+    background: var(--darker-vulture-black);
+    border: 1px solid var(--darker-vulture-black);
+    transition: background 0.5s;
+    color: var(--white);
+}
+
+
+.fade-in{
+    animation: fadeIn ease 1s;
+}
+@keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
