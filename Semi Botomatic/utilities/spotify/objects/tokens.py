@@ -108,7 +108,7 @@ class UserAuthToken:
             if (error := data.get('error')) is not None:
                 raise exceptions.AuthentificationError(f'Error while refreshing user access token: {error}')
 
-        self.access_token = data.get('access_toke')
+        self.access_token = data.get('access_token')
         self.token_type = data.get('token_type')
         self.scopes = data.get('scope', '').split(' ')
         self.expires_in = data.get('expires_in')

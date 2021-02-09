@@ -25,7 +25,7 @@ class Radio(commands.Cog):
         url = f'https://accounts.spotify.com/authorize/?' \
               f'client_id={config.SPOTIFY_CLIENT_ID}&' \
               f'response_type=code&' \
-              f'redirect_uri=http://{config.SPOTIFY_CALLBACK_URI}/api/spotify/callback&' \
+              f'redirect_uri={config.SPOTIFY_CALLBACK_URI}/api/spotify/callback&' \
               f'state={list(self.bot.spotify.user_auth_states.keys())[list(self.bot.spotify.user_auth_states.values()).index(ctx.author.id)]}&' \
               f'scope=user-read-recently-played+user-top-read+user-read-currently-playing+playlist-read-private+playlist-read-collaborative+user-read-private+' \
               f'user-read-playback-state&' \
