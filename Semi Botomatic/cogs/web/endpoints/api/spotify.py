@@ -6,15 +6,13 @@ import aiohttp.web
 
 import config
 from utilities.enums import Editables, Operations
-from utilities.spotify import objects, exceptions
+from utilities.spotify import exceptions, objects
 
 if TYPE_CHECKING:
     from bot import SemiBotomatic
 
 
-class Spotify:
-
-    async def get(self, request: aiohttp.web.Request):
+async def api_spotify_get(request: aiohttp.web.Request):
 
         bot: SemiBotomatic = request.app.bot
 
@@ -61,8 +59,6 @@ class Spotify:
 
 def setup(app: aiohttp.web.Application) -> None:
 
-    spotify = Spotify()
-
     app.add_routes([
-        aiohttp.web.get(r'/api/spotify/callback', spotify.get),
+        aiohttp.web.get(r'/api/spotify/callback', api_spotify_get),
     ])
