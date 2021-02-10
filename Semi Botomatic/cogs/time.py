@@ -89,7 +89,8 @@ class Time(commands.Cog):
         Displays a list of timezones that can be used with the bot.
         """
 
-        await ctx.paginate_embed(entries=pendulum.timezones, per_page=20, header='**Available timezones:**\n\n')
+        await ctx.paginate_embed(entries=pendulum.timezones, per_page=20,
+                                 header='**Available timezones:**\nClick [here](https://skeletonclique.mrrandom.xyz/timezones) to view a list of timezones.\n\n')
 
     @_timezone.command(name='set')
     async def timezone_set(self, ctx: context.Context, *, timezone: converters.TimezoneConverter) -> None:

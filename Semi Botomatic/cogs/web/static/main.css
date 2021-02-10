@@ -3,6 +3,9 @@
     --darker-bandito-yellow: #CEBA00;
 
     --camo-green: #595B3C;
+    --darker-camo-green: #3e402a;
+    --dark-camo-green: #2d2e1e;
+
     --bayou-blue: #A7CAC3;
     --rebel-red: #A75158;
     --bag-beige: #7A7157;
@@ -14,9 +17,27 @@
     --white: #FFFFFF;
 }
 
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--dark-camo-green);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--darker-camo-green);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--camo-green);
+}
+
 
 body {
-    background-color: var(--camo-green);
+    background: hsla(64, 21%, 30%, 1);
+    background: linear-gradient(270deg, hsla(64, 21%, 30%, 1) 0%, hsla(65, 21%, 21%, 1) 50%, hsla(64, 21%, 15%, 1) 100%);
+    background: -moz-linear-gradient(270deg, hsla(64, 21%, 30%, 1) 0%, hsla(65, 21%, 21%, 1) 50%, hsla(64, 21%, 15%, 1) 100%);
+    background: -webkit-linear-gradient(270deg, hsla(64, 21%, 30%, 1) 0%, hsla(65, 21%, 21%, 1) 50%, hsla(64, 21%, 15%, 1) 100%);
+    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#595B3C", endColorstr="#3E402A", GradientType=1 );
 }
 
 
@@ -45,10 +66,21 @@ body {
 }
 
 
-.fade-in{
+.fade-in {
     animation: fadeIn ease 1s;
 }
 @keyframes fadeIn {
     0% {opacity:0;}
     100% {opacity:1;}
+}
+
+
+.underline {
+    border-bottom: 3px solid var(--vulture-black);
+    padding-bottom: 3px;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.active {
+    border-bottom: 3px solid var(--black)
 }
