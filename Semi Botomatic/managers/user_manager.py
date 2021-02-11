@@ -166,7 +166,8 @@ class UserManager:
         buffer = await self.bot.loop.run_in_executor(None, self.create_timecard_image, timezone_users)
         return buffer
 
-    def create_timecard_image(self, timezone_users: dict) -> io.BytesIO:
+    @staticmethod
+    def create_timecard_image(timezone_users: dict) -> io.BytesIO:
 
         width_x = (1600 * (len(timezone_users.keys()) if len(timezone_users.keys()) < 5 else 5)) + 100
         height_y = (1800 * math.ceil(len(timezone_users.keys()) / 5)) + 100
