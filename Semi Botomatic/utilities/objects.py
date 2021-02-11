@@ -8,16 +8,20 @@ from pendulum.tz.timezone import Timezone
 
 class DefaultUserConfig:
 
-    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', 'spotify_refresh_token'
+    __slots__ = 'id', 'blacklisted', 'blacklisted_reason', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', \
+                'spotify_refresh_token'
 
     def __init__(self) -> None:
 
         self.id: int = 0
 
+        self.blacklisted = False
+        self.blacklisted_reason = 'None'
+
         self.timezone: Timezone = pendulum.timezone('UTC')
         self.timezone_private: bool = False
         
-        self.birthday: DateTime = pendulum.DateTime(2020, 1, 1, 0, 0, 0, tzinfo=pendulum.timezone('UTC'))
+        self.birthday: DateTime = pendulum.DateTime(2020, 1, 1, tzinfo=pendulum.timezone('UTC'))
         self.birthday_private: bool = False
 
         self.spotify_refresh_token: Optional[str] = None
@@ -45,11 +49,15 @@ class DefaultUserConfig:
 
 class UserConfig:
 
-    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', 'spotify_refresh_token'
+    __slots__ = 'id', 'blacklisted', 'blacklisted_reason', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', \
+                'spotify_refresh_token'
 
     def __init__(self, data: dict) -> None:
 
         self.id: int = data.get('id', 0)
+
+        self.blacklisted = data.get('blacklisted')
+        self.blacklisted_reason = data.get('blacklisted_reason')
 
         self.timezone: Timezone = pendulum.timezone(data.get('timezone', 'UTC'))
         self.timezone_private: bool = data.get('timezone_private', False)
