@@ -11,9 +11,9 @@ import psutil
 from discord.ext import commands
 
 import config
+from cogs.web import main
 from managers import reminder_manager, tag_manager, user_manager
 from utilities import context, help, spotify
-from cogs.web import main
 
 __log__ = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class SemiBotomatic(commands.AutoShardedBot):
             return
         self.first_ready = False
 
-        await self.add_check(self.command_check)
+        self.add_check(self.command_check)
 
         self.semi_botomatic_web = await main.load(bot=self)
         await self.user_manager.load()

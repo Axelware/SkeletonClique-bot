@@ -8,15 +8,15 @@ from pendulum.tz.timezone import Timezone
 
 class DefaultUserConfig:
 
-    __slots__ = 'id', 'blacklisted', 'blacklisted_reason', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'reminders', 'requires_db_update', \
-                'spotify_refresh_token'
+    __slots__ = 'id', 'blacklisted', 'blacklisted_reason', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'spotify_refresh_token', 'created_at', 'reminders', \
+                'requires_db_update'
 
     def __init__(self) -> None:
 
         self.id: int = 0
 
-        self.blacklisted = False
-        self.blacklisted_reason = 'None'
+        self.blacklisted: bool = False
+        self.blacklisted_reason: str = 'None'
 
         self.timezone: Timezone = pendulum.timezone('UTC')
         self.timezone_private: bool = False
@@ -26,10 +26,10 @@ class DefaultUserConfig:
 
         self.spotify_refresh_token: Optional[str] = None
 
-        self.reminders = []
-        self.requires_db_update = []
-
         self.created_at: DateTime = pendulum.now(tz='UTC')
+
+        self.reminders: List[Optional[Reminder]] = []
+        self.requires_db_update: List[Optional[str]] = []
 
     def __repr__(self) -> str:
         return f'<DefaultUserConfig id=\'{self.id}\'>'
@@ -56,8 +56,8 @@ class UserConfig:
 
         self.id: int = data.get('id', 0)
 
-        self.blacklisted = data.get('blacklisted')
-        self.blacklisted_reason = data.get('blacklisted_reason')
+        self.blacklisted: bool = data.get('blacklisted')
+        self.blacklisted_reason: str = data.get('blacklisted_reason')
 
         self.timezone: Timezone = pendulum.timezone(data.get('timezone', 'UTC'))
         self.timezone_private: bool = data.get('timezone_private', False)
@@ -67,10 +67,10 @@ class UserConfig:
 
         self.spotify_refresh_token: Optional[str] = data.get('spotify_refresh_token', None)
 
-        self.reminders: List[Reminder] = []
-        self.requires_db_update: List[str] = []
-
         self.created_at: DateTime = pendulum.instance(data.get('created_at', dt.datetime.now()), tz=self.timezone)
+
+        self.reminders: List[Optional[Reminder]] = []
+        self.requires_db_update: List[Optional[str]] = []
 
     def __repr__(self) -> str:
         return f'<UserConfig id=\'{self.id}\'>'
@@ -90,25 +90,28 @@ class UserConfig:
 
 class DefaultGuildConfig:
 
-    __slots__ = 'embed_size'
+    __slots__ = 'id', 'embed_size'
 
     def __init__(self) -> None:
-        self.embed_size = 'small'
+
+        self.id: int = 0
+        self.embed_size: str = 'small'
 
     def __repr__(self) -> str:
-        return f'<DefaultGuildConfig>'
+        return f'<DefaultGuildConfig id=\'{self.id}\'>'
 
 
 class GuildConfig:
 
-    __slots__ = 'embed_size'
+    __slots__ = 'id', 'embed_size'
 
     def __init__(self, data: dict) -> None:
 
-        self.embed_size = data.get('embed_size', 'small')
+        self.id: int = data.get('id')
+        self.embed_size: str = data.get('embed_size', 'small')
 
     def __repr__(self) -> str:
-        return f'<GuildConfig>'
+        return f'<GuildConfig id=\'{self.id}\'>'
 
 
 class Tag:

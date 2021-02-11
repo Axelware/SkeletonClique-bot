@@ -83,7 +83,20 @@ class UserManager:
 
         __log__.info(f'[USER MANAGERS] Edited user config for user with id \'{user_id}\'. Editable: {editable.value} | Operation: {operation.value} | Value: {value}')
 
-        if editable == Editables.timezone:
+        if editable == Editables.blacklist:
+
+            operations = {
+                Operations.set.value:
+                    ('UPDATE users SET blacklisted = $1, blacklisted_reason = $2 WHERE id = $3 RETURNING blacklisted, blacklisted_reason', True, value, user_id),
+                Operations.reset.value:
+                    ('UPDATE users SET blacklisted = $1, blacklisted_reason = $2 WHERE id = $3 RETURNING blacklisted, blacklisted_reason', False, None, user_id)
+            }
+
+            data = await self.bot.db.fetchrow(*operations[operation.value])
+            user_config.blacklisted = data['blacklisted']
+            user_config.blacklisted_reason = data['blacklisted_reason']
+
+        elif editable == Editables.timezone:
 
             operations = {
                 Operations.set.value: ('UPDATE users SET timezone = $1 WHERE id = $2 RETURNING timezone', value, user_id),
