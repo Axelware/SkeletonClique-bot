@@ -19,7 +19,6 @@ pynacl>=1.4.0
 rapidfuzz>=0.14.2
 setproctitle>=1.2.2
 git+git://github.com/maxbachmann/RapidFuzz@1.0.0#egg=rapidfuzz
-git+git://github.com/petrutlucian94/py-setproctitle#egg=setproctitle
 git+git://github.com/Axelancerr/spotify.py.git#egg=spotify
 git+git://github.com/Axelancerr/Slate#egg=slate
 wand>=0.6.5
