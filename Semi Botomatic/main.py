@@ -62,6 +62,8 @@ if __name__ == '__main__':
             asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     except ImportError:
         uvloop = None
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     else:
         del uvloop
 
