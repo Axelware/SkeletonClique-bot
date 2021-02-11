@@ -1,8 +1,8 @@
 
-# Bot stuff
+# Bot
 TOKEN = ''
 PREFIX = ''
-
+CLIENT_ID = ''
 EXTENSIONS = [
     'cogs.information',
     'cogs.voice.music',
@@ -15,11 +15,15 @@ EXTENSIONS = [
     'cogs.dev',
     'jishaku',
 ]
+OWNER_IDS = {
+    0, 0, 0, 0, 0
+}
 
 # Tokens
 KSOFT_TOKEN = ''
 SPOTIFY_CLIENT_ID = ''
 SPOTIFY_CLIENT_SECRET = ''
+
 
 # Connection information
 POSTGRESQL = {
@@ -28,7 +32,12 @@ POSTGRESQL = {
     'database': '',
     'password': '',
 }
-
+REDIS = {
+    'host':     '',
+    'port':     0,
+    'password': '',
+    'db':       0,
+}
 NODES = [
     {
         'host':       '',
@@ -45,11 +54,9 @@ NODES = [
         'type':       '',
     },
 ]
-
 WEB_ADDRESS = '127.0.0.1'
 WEB_PORT = 8080
 WEB_URL = f'{WEB_ADDRESS}:{WEB_PORT}'
-
 SPOTIFY_CALLBACK_URI = 'http://127.0.0.1'
 
 # Custom values
@@ -57,19 +64,12 @@ COLOUR = 0x4e5122
 ZWSP = '\u200b'
 NL = '\n'
 
-# Guild ID's
-SKELETON_CLIQUE_ID = 0
-ALESS_LAND_ID = 0
-
-# Role ID's
+# ID's
+SKELETON_CLIQUE_GUILD_ID = 0
+ALESS_LAND_GUILD_ID = 0
 NITRO_BOOSTER_ROLE_ID = 0
 FAIRY_LOCALS_ROLE_ID = 0
 STAFF_ROLE_ID = 0
-
-# User ID's
-OWNER_IDS = {
-    0, 0, 0, 0, 0
-}
 
 
 # Webhooks
