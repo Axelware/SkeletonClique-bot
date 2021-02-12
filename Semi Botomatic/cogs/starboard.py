@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 
-import config
 from bot import SemiBotomatic
 
 
@@ -10,7 +9,7 @@ class Starboard(commands.Cog):
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
-        self.STARBOARD = discord.Webhook.from_url(url=config.STARBOARD_WEBHOOK, adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
+        #self.STARBOARD = discord.Webhook.from_url(url=config.STARBOARD_WEBHOOK, adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
 
         self.STAR_EMOJI = {
             'basic':     '\U00002b50',

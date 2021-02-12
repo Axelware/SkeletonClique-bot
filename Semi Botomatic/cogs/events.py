@@ -200,7 +200,7 @@ class Events(commands.Cog):
 
         if config.PREFIX == '!!':
             return
-        if before.author.bot or (before.guild and before.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}):
+        if before.author.bot or (before.guild and before.guild.id not in {config.ALESS_LAND_GUILD_ID, config.SKELETON_CLIQUE_GUILD_ID}):
             return
 
         ctx = await self.bot.get_context(message=before)
@@ -218,7 +218,7 @@ class Events(commands.Cog):
 
         if config.PREFIX == '!!':
             return
-        if message.author.bot or (message.guild and message.guild.id not in {config.ALESS_LAND_ID, config.SKELETON_CLIQUE_ID}):
+        if message.author.bot or (message.guild and message.guild.id not in {config.ALESS_LAND_GUILD_ID, config.SKELETON_CLIQUE_GUILD_ID}):
             return
 
         ctx = await self.bot.get_context(message=message)
@@ -253,7 +253,7 @@ class Events(commands.Cog):
 
         if config.PREFIX == '!!':
             return
-        if member.guild.id != config.SKELETON_CLIQUE_ID:
+        if member.guild.id != config.SKELETON_CLIQUE_GUILD_ID:
             return
 
         embed = discord.Embed(colour=discord.Colour(0x00FF00), title=f'`{member}` just joined', description=f'{member.mention}')
@@ -271,7 +271,7 @@ class Events(commands.Cog):
 
         if config.PREFIX == '!!':
             return
-        if member.guild.id != config.SKELETON_CLIQUE_ID:
+        if member.guild.id != config.SKELETON_CLIQUE_GUILD_ID:
             return
 
         members = member.guild.members.copy()
