@@ -3,6 +3,7 @@ from typing import Optional
 from utilities.spotify import objects
 
 
+# noinspection PyArgumentList
 class AudioFeatures:
 
     __slots__ = 'data', 'acousticness', 'analysis_url', 'danceability', 'duration_ms', 'energy', 'id', 'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', \

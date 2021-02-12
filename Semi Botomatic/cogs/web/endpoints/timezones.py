@@ -3,6 +3,7 @@ import aiohttp.web
 import aiohttp_jinja2
 
 
+# noinspection PyUnusedLocal
 @aiohttp_jinja2.template('timezones.html')
 async def timezones_get(request: aiohttp.web.Request):
     return {'timezones': pendulum.timezones}

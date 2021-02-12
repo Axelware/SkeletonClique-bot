@@ -37,6 +37,7 @@ body {
     background: linear-gradient(270deg, hsla(64, 21%, 30%, 1) 0%, hsla(65, 21%, 21%, 1) 50%, hsla(64, 21%, 15%, 1) 100%);
     background: -moz-linear-gradient(270deg, hsla(64, 21%, 30%, 1) 0%, hsla(65, 21%, 21%, 1) 50%, hsla(64, 21%, 15%, 1) 100%);
     background: -webkit-linear-gradient(270deg, hsla(64, 21%, 30%, 1) 0%, hsla(65, 21%, 21%, 1) 50%, hsla(64, 21%, 15%, 1) 100%);
+    /*noinspection CssInvalidPropertyValue*/
     filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#595B3C", endColorstr="#3E402A", GradientType=1 );
 }
 

@@ -3,6 +3,7 @@ from typing import Optional
 from utilities.spotify import objects
 
 
+# noinspection PyArgumentList
 class Copyright:
 
     __slots__ = 'data', 'text', 'type'

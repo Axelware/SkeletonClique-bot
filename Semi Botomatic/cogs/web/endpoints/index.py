@@ -2,6 +2,7 @@ import aiohttp.web
 import aiohttp_jinja2
 
 
+# noinspection PyUnusedLocal
 @aiohttp_jinja2.template('index.html')
 async def index_get(request: aiohttp.web.Request):
     return None

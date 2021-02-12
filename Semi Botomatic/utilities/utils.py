@@ -111,22 +111,22 @@ def line_count() -> Tuple[int, int, int, int]:
 
 def badges(*, bot: SemiBotomatic, person: Union[discord.User, discord.Member]) -> str:
 
-    badges = [badge for name, badge in config.BADGE_EMOJIS.items() if dict(person.public_flags)[name] is True]
+    badges_list = [badge for name, badge in config.BADGE_EMOJIS.items() if dict(person.public_flags)[name] is True]
     if dict(person.public_flags)['verified_bot'] is False and person.bot:
-        badges.append('<:bot:738979752244674674>')
+        badges_list.append('<:bot:738979752244674674>')
 
     if any([guild.get_member(person.id).premium_since for guild in bot.guilds if person in guild.members]):
-        badges.append('<:booster_level_4:738961099310760036>')
+        badges_list.append('<:booster_level_4:738961099310760036>')
 
     if person.is_avatar_animated() or any([guild.get_member(person.id).premium_since for guild in bot.guilds if person in guild.members]):
-        badges.append('<:nitro:738961134958149662>')
+        badges_list.append('<:nitro:738961134958149662>')
 
     elif member := discord.utils.get(bot.get_all_members(), id=person.id):
         if activity := discord.utils.get(member.activities, type=discord.ActivityType.custom):
             if activity.emoji and activity.emoji.is_custom_emoji():
-                badges.append('<:nitro:738961134958149662>')
+                badges_list.append('<:nitro:738961134958149662>')
 
-    return ' '.join(badges) if badges else 'N/A'
+    return ' '.join(badges_list) if badges else 'N/A'
 
 
 def activities(*, person: discord.Member) -> str:
