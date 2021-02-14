@@ -11,7 +11,8 @@ class Tags(commands.Cog):
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
-    def get_tag_limit(self, member: discord.Member) -> int:
+    @staticmethod
+    def get_tag_limit(member: discord.Member) -> int:
 
         limit = 5
         if discord.utils.get(member.roles, id=config.NITRO_BOOSTER_ROLE_ID) is not None:
@@ -225,7 +226,7 @@ class Tags(commands.Cog):
         entries = [f'`{index + 1}.` {tag.name}' for index, tag in enumerate(tags)]
         await ctx.paginate_embed(entries=entries, per_page=25, header=f'**{member}\'s tags:**\n\n')
 
-    @tag.command(name='all', aliases=['alltags', 'listall'])
+    @tag.command(name='all')
     async def tag_all(self, ctx: context.Context) -> None:
         """
         Get a list of all tags in this server.
