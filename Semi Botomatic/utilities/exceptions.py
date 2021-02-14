@@ -1,5 +1,7 @@
+from discord.ext import commands
 
-class SemiBotomaticError(Exception):
+
+class SemiBotomaticError(commands.CommandError):
     pass
 
 
