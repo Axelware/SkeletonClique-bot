@@ -60,7 +60,7 @@ class TimezoneConverter(commands.Converter, ABC):
 
         if argument not in pendulum.timezones:
             msg = '\n'.join(f'`{index + 1}.` {match[0]}' for index, match in enumerate(
-                    rapidfuzz.process.extract(query=argument, choices=pendulum.timezones, limit=5, processor=lambda s: s)
+                    rapidfuzz.process.extract(query=argument, choices=pendulum.timezones, processor=lambda s: s)
             ))
             raise exceptions.ArgumentError(f'That was not a recognised timezone. Maybe you meant one of these?\n{msg}')
 
