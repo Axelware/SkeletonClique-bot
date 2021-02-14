@@ -29,7 +29,8 @@ class HelpCommand(commands.HelpCommand):
 
         return filtered_commands
 
-    def format_commands(self, *, unformatted_command: List[commands.Command]) -> List[str]:
+    @staticmethod
+    def format_commands(*, unformatted_command: List[commands.Command]) -> List[str]:
 
         formatted_commands = []
 
