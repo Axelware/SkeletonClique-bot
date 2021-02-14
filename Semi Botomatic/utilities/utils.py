@@ -27,12 +27,10 @@ async def safe_text(*, mystbin_client: mystbin.Client, text: str) -> str:
         return text
 
     try:
-        mystbin_link = await mystbin_client.post(text, syntax='python')
+        return await mystbin_client.post(text, syntax='python')
     except mystbin.APIError as error:
         __log__.warning(f'[ERRORS] Error while uploading error traceback to mystbin | Code: {error.status_code} | Message: {error.message}')
-        mystbin_link = f'{text[:1024]}'
-
-    return mystbin_link
+        return f'{text[:1024]}'
 
 
 def convert_datetime(*, datetime: Union[dt.datetime, DateTime]) -> DateTime:
