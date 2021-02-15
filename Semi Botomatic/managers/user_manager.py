@@ -75,6 +75,14 @@ class UserManager:
     def get_user_config(self, *, user_id: int) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
         return self.configs.get(user_id, self.default_config)
 
+    async def get_or_create_user_config(self, *, user_id: int) -> objects.UserConfig:
+
+        user_config = self.get_user_config(user_id=user_id)
+        if isinstance(user_config, objects.DefaultUserConfig):
+            user_config = await self.create_user_config(user_id=user_id)
+
+        return user_config
+
     async def edit_user_config(self, *, user_id: int, editable: Editables, operation: Operations, value: Any = None) -> objects.UserConfig:
 
         user_config = self.get_user_config(user_id=user_id)
