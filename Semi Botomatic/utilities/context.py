@@ -5,12 +5,19 @@ import discord
 from discord.ext import commands
 
 import config
-from utilities import exceptions, objects, paginators
+from utilities import enums, exceptions, objects, paginators
+
+
+# noinspection PyArgumentList
+class GuildConfig:
+
+    def __init__(self, data: dict) -> None:
+        self.embed_size = enums.EmbedSize(data.get('embed_size'))
 
 
 class Context(commands.Context):
 
-    _guild_config = objects.GuildConfig(data={'embed_size': 'small'})
+    _guild_config = GuildConfig(data={'embed_size': 2})
 
     @property
     def user_config(self) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
@@ -21,7 +28,7 @@ class Context(commands.Context):
         return self.bot.user_manager.get_user_config(user_id=self.author.id)
 
     @property
-    def guild_config(self) -> Union[objects.DefaultGuildConfig, objects.GuildConfig]:
+    def guild_config(self) -> Union[GuildConfig]:
         return self._guild_config
 
     @property

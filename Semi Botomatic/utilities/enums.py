@@ -24,3 +24,10 @@ class Editables(enum.Enum):
     birthday_private = 'birthday_private'
 
     spotify_refresh_token = 'spotify_refresh_token'
+
+
+class EmbedSize(enum.Enum):
+
+    LARGE = 0
+    MEDIUM = 1
+    SMALL = 2
