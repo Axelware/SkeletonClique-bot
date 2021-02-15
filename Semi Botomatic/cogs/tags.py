@@ -81,7 +81,7 @@ class Tags(commands.Cog):
         if tag:
             raise exceptions.ArgumentError(f'There is already a tag with the name `{name}`.')
 
-        await self.bot.tag_manager.create_tag(author=ctx.author, name=str(name), content=str(content))
+        await self.bot.tag_manager.create_tag(user_id=ctx.author.id, name=str(name), content=str(content))
         await ctx.send(f'Created tag with name `{name}`')
 
     @tag.command(name='alias')
@@ -105,7 +105,7 @@ class Tags(commands.Cog):
         if not original_tag:
             raise exceptions.ArgumentError(f'There are no tags in this server with the name `{original}`.')
 
-        await self.bot.tag_manager.create_tag_alias(author=ctx.author, alias=str(alias), original=str(original))
+        await self.bot.tag_manager.create_tag_alias(user_id=ctx.author.id, alias=str(alias), original=str(original))
         await ctx.send(f'Tag alias from `{alias}` to `{original}` was created.')
 
     @tag.command(name='claim')
@@ -124,11 +124,11 @@ class Tags(commands.Cog):
         if not tag:
             raise exceptions.ArgumentError(f'There are no tags with the name `{name}`.')
 
-        owner = ctx.guild.get_member(tag.owner_id)
+        owner = ctx.guild.get_member(tag.user_id)
         if owner is not None:
             raise exceptions.ArgumentError(f'The owner of that tag is still in the server.')
 
-        await self.bot.tag_manager.edit_tag_owner(name=str(name), new_owner=ctx.author)
+        await self.bot.tag_manager.edit_tag_owner(name=str(name), user_id=ctx.author.id)
         await ctx.send(f'You claimed the tag with name `{name}`.')
 
     @tag.command(name='transfer')
@@ -151,11 +151,11 @@ class Tags(commands.Cog):
         if not tag:
             raise exceptions.ArgumentError(f'There are no tags with the name `{name}`.')
 
-        if tag.owner_id != ctx.author.id:
+        if tag.user_id != ctx.author.id:
             raise exceptions.ArgumentError(f'You do not own the tag with name `{name}`.')
 
-        await self.bot.tag_manager.edit_tag_owner(name=str(name), new_owner=member)
-        await ctx.send(f'Transferred tag from `{ctx.author}` to `{(await self.bot.fetch_user(tag.owner_id))}`.')
+        await self.bot.tag_manager.edit_tag_owner(name=str(name), user_id=member.id)
+        await ctx.send(f'Transferred tag from `{ctx.author}` to `{(await self.bot.fetch_user(tag.user_id))}`.')
 
     @tag.command(name='edit')
     async def tag_edit(self, ctx: context.Context, name: converters.TagNameConverter, *, content: converters.TagContentConverter) -> None:
@@ -170,10 +170,10 @@ class Tags(commands.Cog):
         if not tag:
             raise exceptions.ArgumentError(f'There are no tags with the name `{name}`.')
 
-        if tag.owner_id != ctx.author.id:
+        if tag.user_id != ctx.author.id:
             raise exceptions.ArgumentError(f'You do not own the tag with the name `{name}`.')
 
-        await self.bot.tag_manager.edit_tag_content(name=str(name), new_content=str(content))
+        await self.bot.tag_manager.edit_tag_content(name=str(name), content=str(content))
         await ctx.send(f'Edited content of tag with name `{name}`.')
 
     @tag.command(name='delete', aliases=['remove'])
@@ -187,7 +187,7 @@ class Tags(commands.Cog):
         tag = self.bot.tag_manager.get_tag(name=str(name))
         if not tag:
             raise exceptions.ArgumentError(f'There are no tags with the name `{name}`.')
-        if tag.owner_id != ctx.author.id and ctx.author.id not in config.OWNER_IDS:
+        if tag.user_id != ctx.author.id and ctx.author.id not in config.OWNER_IDS:
             raise exceptions.ArgumentError(f'You do not own the tag with name `{name}`.')
 
         await self.bot.tag_manager.delete_tag(name=str(name))
@@ -251,10 +251,10 @@ class Tags(commands.Cog):
         if not tag:
             raise exceptions.ArgumentError(f'There are no tags with the name `{name}`.')
 
-        owner = ctx.guild.get_member(tag.owner_id)
+        owner = ctx.guild.get_member(tag.user_id)
 
-        embed = discord.Embed(colour=ctx.colour, description=f'**{tag.name}**')
-        embed.description = f'`Owner:` {owner.mention if owner else "None"} ({tag.owner_id})\n`Claimable:` {owner is None}\n`Alias:` {tag.alias}'
+        embed = discord.Embed(colour=ctx.colour)
+        embed.description = f'**{tag.name}**\n`Owner:` {owner.mention if owner else "None"} ({tag.user_id})\n`Claimable:` {owner is None}\n`Alias:` {tag.alias}'
         embed.set_footer(text=f'Created on {utils.format_datetime(datetime=tag.created_at)}')
         await ctx.send(embed=embed)
 
