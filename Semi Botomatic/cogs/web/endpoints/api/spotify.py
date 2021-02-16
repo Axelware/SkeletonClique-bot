@@ -33,7 +33,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
             data = {
                 'grant_type':   'authorization_code',
                 'code':         code,
-                'redirect_uri': f'{config.SPOTIFY_CALLBACK_URI}/api/spotify/callback',
+                'redirect_uri': f'{config.SPOTIFY_CALLBACK_URI}api/spotify/callback',
 
                 'client_id':     config.SPOTIFY_CLIENT_ID,
                 'client_secret': config.SPOTIFY_CLIENT_SECRET
