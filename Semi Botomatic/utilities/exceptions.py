@@ -11,3 +11,7 @@ class ArgumentError(SemiBotomaticError):
 
 class VoiceError(SemiBotomaticError):
     pass
+
+
+class GeneralError(SemiBotomaticError):
+    pass
