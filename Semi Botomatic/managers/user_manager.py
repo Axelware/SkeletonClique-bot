@@ -39,6 +39,7 @@ class UserManager:
         print(f'[USER MANAGER] Loaded user configs. [{len(configs)} users]')
 
         await self.bot.reminder_manager.load()
+        await self.bot.todo_manager.load()
 
     #
 
