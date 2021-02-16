@@ -1,9 +1,11 @@
 from abc import ABC
+from typing import Union
 
 import dateparser.search
 import discord
 import pendulum
 import rapidfuzz
+import yarl
 from discord.ext import commands
 from pendulum.tz.timezone import Timezone
 
@@ -13,24 +15,21 @@ from utilities import context, exceptions
 
 class ChannelEmojiConverter(commands.Converter, ABC):
 
-    async def convert(self, ctx: context.Context, channel: discord.abc.GuildChannel) -> str:
+    async def convert(self, ctx: context.Context, channel: Union[discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel]) -> str:
 
         if isinstance(channel, discord.VoiceChannel):
-            emoji = 'voice'
-            if channel.overwrites_for(channel.guild.default_role).connect is False:
-                emoji = 'voice_locked'
+            emoji = 'voice_locked' if channel.overwrites_for(channel.guild.default_role).connect is False else 'voice'
+
+        elif isinstance(channel, discord.TextChannel):
+            if channel.is_news():
+                emoji = 'news_locked' if channel.overwrites_for(channel.guild.default_role).read_messages is False else 'news'
+            elif channel.is_nsfw():
+                emoji = 'text_nsfw'
+            else:
+                emoji = 'text_locked' if channel.overwrites_for(channel.guild.default_role).read_messages is False else 'text'
 
         else:
-            if channel.is_news():
-                emoji = 'news'
-                if channel.overwrites_for(channel.guild.default_role).read_messages is False:
-                    emoji = 'news_locked'
-            else:
-                emoji = 'text'
-                if channel.is_nsfw():
-                    emoji = 'text_nsfw'
-                elif channel.overwrites_for(channel.guild.default_role).read_messages is False:
-                    emoji = 'text_locked'
+            emoji = 'unknown'
 
         return config.CHANNEL_EMOJIS[emoji]
 
@@ -119,3 +118,27 @@ class DatetimeConverter(commands.Converter, ABC):
             raise exceptions.ArgumentError('I was able to find a time and/or date within your query, however it seems to be in the past.')
 
         return data
+
+
+class ImageConverter(commands.Converter, ABC):
+
+    async def convert(self, ctx: context.Context, argument: str) -> str:
+
+        url = None
+
+        try:
+            member = await commands.MemberConverter().convert(ctx=ctx, argument=str(argument))
+        except commands.BadArgument:
+            pass
+        else:
+            url = str(member.avatar_url_as(format='gif' if member.is_avatar_animated() is True else 'png'))
+
+        if url is None:
+            check = yarl.URL(argument)
+            if check.scheme and check.host:
+                url = argument
+
+        if url is None:
+            raise commands.ConversionError
+
+        return url

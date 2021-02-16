@@ -62,6 +62,7 @@ class Events(commands.Cog):
             exceptions.ArgumentError:               '{error}',
             exceptions.GeneralError:                '{error}',
             exceptions.VoiceError:                  '{error}',
+            exceptions.ImageError:                  '{error}',
             slate.NoNodesAvailable:                 'There are no music nodes available right now.',
 
             commands.TooManyArguments:              'You used too many arguments. Use `{prefix}help {command}` for more information on what arguments to use.',

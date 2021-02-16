@@ -15,3 +15,7 @@ class VoiceError(SemiBotomaticError):
 
 class GeneralError(SemiBotomaticError):
     pass
+
+
+class ImageError(SemiBotomaticError):
+    pass
