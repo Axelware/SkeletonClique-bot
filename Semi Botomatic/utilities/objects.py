@@ -9,7 +9,7 @@ from pendulum.tz.timezone import Timezone
 class DefaultUserConfig:
 
     __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'reminders', \
-                'requires_db_update'
+                'todos', 'requires_db_update'
 
     def __init__(self) -> None:
 
@@ -28,6 +28,7 @@ class DefaultUserConfig:
         self.spotify_refresh_token: Optional[str] = None
 
         self.reminders: Dict[int, Reminder] = {}
+        self.todos: Dict[int, Todo] = {}
         self.requires_db_update = []
 
     def __repr__(self) -> str:
@@ -37,7 +38,7 @@ class DefaultUserConfig:
 class UserConfig:
 
     __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'reminders', \
-                'requires_db_update'
+                'todos', 'requires_db_update'
 
     def __init__(self, data: dict) -> None:
 
@@ -56,6 +57,7 @@ class UserConfig:
         self.spotify_refresh_token: Optional[str] = data.get('spotify_refresh_token')
 
         self.reminders: Dict[int, Reminder] = {}
+        self.todos: Dict[int, Todo] = {}
         self.requires_db_update = []
 
     def __repr__(self) -> str:
