@@ -12,7 +12,7 @@ from discord.ext import commands
 
 import config
 from cogs.web import main
-from managers import reminder_manager, tag_manager, user_manager, todo_manager
+from managers import guild_manager, reminder_manager, tag_manager, todo_manager, user_manager
 from utilities import context, help, spotify
 
 __log__ = logging.getLogger(__name__)
@@ -50,6 +50,7 @@ class SemiBotomatic(commands.AutoShardedBot):
         self.semi_botomatic_web: Optional[main.SemiBotomaticWeb] = None
 
         self.user_manager: user_manager.UserManager = user_manager.UserManager(bot=self)
+        self.guild_manager: guild_manager.GuildManager = guild_manager.GuildManager(bot=self)
         self.tag_manager: tag_manager.TagManager = tag_manager.TagManager(bot=self)
         self.reminder_manager: reminder_manager.ReminderManager = reminder_manager.ReminderManager(bot=self)
         self.todo_manager: todo_manager.TodoManager = todo_manager.TodoManager(bot=self)
@@ -121,6 +122,7 @@ class SemiBotomatic(commands.AutoShardedBot):
 
         self.semi_botomatic_web = await main.load(bot=self)
         await self.user_manager.load()
+        await self.guild_manager.load()
         await self.tag_manager.load()
 
         for cog in self.cogs.values():

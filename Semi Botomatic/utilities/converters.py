@@ -71,7 +71,6 @@ class TagNameConverter(commands.clean_content, ABC):
     async def convert(self, ctx: context.Context, argument: str) -> str:
 
         argument = discord.utils.escape_markdown(await super().convert(ctx, argument)).strip()
-
         if not argument:
             raise commands.BadArgument
 
@@ -90,7 +89,6 @@ class TagContentConverter(commands.clean_content, ABC):
     async def convert(self, ctx: context.Context, argument: str) -> str:
 
         argument = (await super().convert(ctx, argument)).strip()
-
         if not argument:
             raise commands.BadArgument
 

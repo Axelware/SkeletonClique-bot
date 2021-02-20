@@ -5,34 +5,29 @@ import discord
 from discord.ext import commands
 
 import config
-from utilities import enums, exceptions, objects, paginators
-
-
-# noinspection PyArgumentList
-class GuildConfig:
-
-    def __init__(self, data: dict) -> None:
-        self.embed_size = enums.EmbedSize(data.get('embed_size'))
+from utilities import exceptions, objects, paginators
 
 
 class Context(commands.Context):
-
-    _guild_config = GuildConfig(data={'embed_size': 2})
 
     @property
     def user_config(self) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
 
         if not self.author:
-            return self.bot.user_manager.default_user_config
+            return self.bot.user_manager.default_config
 
-        return self.bot.user_manager.get_user_config(user_id=self.author.id)
-
-    @property
-    def guild_config(self) -> Union[GuildConfig]:
-        return self._guild_config
+        return self.bot.user_manager.get_config(user_id=self.author.id)
 
     @property
-    def top_role_colour(self) -> Optional[discord.Colour]:
+    def guild_config(self) -> Union[objects.DefaultGuildConfig, objects.GuildConfig]:
+
+        if not self.guild:
+            return self.bot.guild_manager.default_config
+
+        return self.bot.guild_manager.get_config(guild_id=self.guild.id)#
+
+    @property
+    def top_role_colour(self) -> discord.Colour:
 
         roles = list(reversed([role for role in self.author.roles if role.colour.value != 0]))
         if not roles:
@@ -41,7 +36,7 @@ class Context(commands.Context):
         return roles[0].colour
 
     @property
-    def colour(self):
+    def colour(self) -> discord.Colour:
         return self.top_role_colour if isinstance(self.author, discord.Member) else discord.Colour(config.COLOUR)
 
     async def paginate(self, **kwargs) -> paginators.Paginator:

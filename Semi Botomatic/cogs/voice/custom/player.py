@@ -13,7 +13,7 @@ from spotify.errors import HTTPException
 import config
 from bot import SemiBotomatic
 from cogs.voice.custom import objects, queue
-from utilities import context, exceptions, utils
+from utilities import context, enums, exceptions, utils
 
 __log__ = logging.getLogger('slate.player')
 
@@ -91,7 +91,7 @@ class Player(slate.Player):
 
         queue_time = utils.format_seconds(seconds=round(sum(track.length for track in self.queue)) // 1000, friendly=True)
 
-        if self.current.ctx.guild_config.embed_size == 'normal':
+        if self.current.ctx.guild_config.embed_size == enums.EmbedSize.LARGE:
 
             embed.add_field(name='Player info:',
                             value=f'`Volume:` {self.volume}\n`Paused:` {self.is_paused}\n`Looping:` {self.queue.is_looping}\n`Looping current:` {self.queue.is_looping_current}\n'
@@ -111,7 +111,7 @@ class Player(slate.Player):
 
                 embed.add_field(name='Up next:', value='\n'.join(entries), inline=False)
 
-        if self.current.ctx.guild_config.embed_size == 'small':
+        if self.current.ctx.guild_config.embed_size == enums.EmbedSize.MEDIUM:
 
             embed.add_field(name='Player info:',
                             value=f'`Volume:` {self.volume}\n`Paused:` {self.is_paused}\n`Looping:` {self.queue.is_looping}\n`Looping current:` {self.queue.is_looping_current}\n')

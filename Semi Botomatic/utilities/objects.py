@@ -5,11 +5,45 @@ import pendulum
 from pendulum.datetime import DateTime
 from pendulum.tz.timezone import Timezone
 
+from utilities import enums
+
+
+# noinspection PyArgumentList
+class DefaultGuildConfig:
+
+    __slots__ = 'id', 'created_at', 'embed_size'
+
+    def __init__(self) -> None:
+
+        self.id: int = 0
+        self.created_at: DateTime = pendulum.now(tz='UTC')
+
+        self.embed_size: enums.EmbedSize = enums.EmbedSize(0)
+
+    def __repr__(self) -> str:
+        return f'<DefaultGuildConfig id=\'{self.id}\'>'
+
+
+# noinspection PyArgumentList
+class GuildConfig:
+
+    __slots__ = 'id', 'created_at', 'embed_size'
+
+    def __init__(self, data: dict) -> None:
+
+        self.id: int = data.get('id')
+        self.created_at: DateTime = pendulum.instance(data.get('created_at'), tz='UTC')
+
+        self.embed_size = enums.EmbedSize(data.get('embed_size'))
+
+    def __repr__(self) -> str:
+        return f'<GuildConfig id=\'{self.id}\'>'
+
 
 class DefaultUserConfig:
 
     __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'reminders', \
-                'todos', 'requires_db_update'
+                'todos'
 
     def __init__(self) -> None:
 
@@ -29,7 +63,6 @@ class DefaultUserConfig:
 
         self.reminders: Dict[int, Reminder] = {}
         self.todos: Dict[int, Todo] = {}
-        self.requires_db_update = []
 
     def __repr__(self) -> str:
         return f'<DefaultUserConfig id=\'{self.id}\'>'
@@ -38,7 +71,7 @@ class DefaultUserConfig:
 class UserConfig:
 
     __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'reminders', \
-                'todos', 'requires_db_update'
+                'todos'
 
     def __init__(self, data: dict) -> None:
 
@@ -58,7 +91,6 @@ class UserConfig:
 
         self.reminders: Dict[int, Reminder] = {}
         self.todos: Dict[int, Todo] = {}
-        self.requires_db_update = []
 
     def __repr__(self) -> str:
         return f'<UserConfig id=\'{self.id}\'>'

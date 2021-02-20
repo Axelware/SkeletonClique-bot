@@ -1,3 +1,4 @@
+import collections
 import sys
 
 import discord
@@ -8,7 +9,7 @@ from discord.ext import commands
 
 import config
 from bot import SemiBotomatic
-from utilities import context
+from utilities import context, converters, exceptions
 
 
 class Dev(commands.Cog):
@@ -61,7 +62,7 @@ class Dev(commands.Cog):
     @dev.command(name='cleanup', aliases=['clean'], hidden=True)
     async def dev_cleanup(self, ctx: context.Context, limit: int = 50) -> None:
         """
-        Cleans up the bots messages.
+        Clean up the bots messages.
 
         `limit`: The amount of messages to check back through. Defaults to 50.
         """
@@ -72,6 +73,84 @@ class Dev(commands.Cog):
             messages = await ctx.channel.purge(check=lambda message: message.author == ctx.me, bulk=False, limit=limit)
 
         await ctx.send(f'Found and deleted `{len(messages)}` of my message(s) out of the last `{limit}` message(s).', delete_after=3)
+
+    @commands.is_owner()
+    @dev.command(name='socketstats', aliases=['ss'], hidden=True)
+    async def dev_socket_stats(self, ctx: context.Context) -> None:
+        """
+        Displays a list of socket event counts since startup.
+        """
+
+        event_stats = collections.OrderedDict(sorted(self.bot.socket_stats.items(), key=lambda kv: kv[1], reverse=True))
+        events_total = sum(event_stats.values())
+        # noinspection PyUnresolvedReferences
+        events_per_second = round(events_total / round(time.time() - self.bot.start_time))
+
+        description = [f'```py\n{events_total} socket events observed at a rate of {events_per_second} per second.\n']
+
+        for event, count in event_stats.items():
+            description.append(f'{event:29} | {count}')
+
+        description.append('```')
+
+        embed = discord.Embed(title=f'{self.bot.user.name} socket stats.', colour=ctx.colour, description='\n'.join(description))
+        await ctx.send(embed=embed)
+
+    @dev.group(name='blacklist', aliases=['bl'], hidden=True, invoke_without_command=True)
+    async def dev_blacklist(self, ctx: context.Context) -> None:
+        """
+        Base command for blacklisting.
+        """
+
+        await ctx.send(f'Choose a valid subcommand. Use `{config.PREFIX}help dev blacklist` for more information.')
+
+    @dev_blacklist.group(name='users', aliases=['user', 'u'], hidden=True, invoke_without_command=True)
+    async def dev_blacklist_users(self, ctx: context.Context) -> None:
+        """
+        Display a list of blacklisted users.
+        """
+
+        blacklisted = [user_config for user_config in self.bot.user_manager.configs.values() if user_config.blacklisted is True]
+        if not blacklisted:
+            raise exceptions.ArgumentError('There are no blacklisted users.')
+
+        entries = [f'{user_config.id:<19} | {user_config.blacklisted_reason}' for user_config in blacklisted]
+        header = 'User id             | Reason\n'
+        await ctx.paginate(entries=entries, per_page=15, header=header, codeblock=True)
+
+    @dev_blacklist_users.command(name='add', hidden=True)
+    async def dev_blacklist_users_add(self, ctx: context.Context, user: converters.UserConverter, *, reason: str = 'No reason') -> None:
+        """
+        Blacklist a user.
+
+        `user`: The user to add to the blacklist.
+        `reason`: Reason why the user is being blacklisted.
+        """
+
+        if reason == 'No reason':
+            reason = f'{user.name} - No reason'
+
+        user_config = self.bot.user_manager.get_config(user_id=user.id)
+        if user_config.blacklisted is True:
+            raise exceptions.ArgumentError(f'That user is already blacklisted.')
+
+        await self.bot.user_manager.set_blacklisted(user_id=user.id, reason=reason)
+        await ctx.send(f'Blacklisted user `{user.id}` with reason:\n\n`{reason}`')
+
+    @dev_blacklist_users.command(name='remove', hidden=True)
+    async def dev_blacklist_users_remove(self, ctx: context.Context, user: converters.UserConverter) -> None:
+        """
+        Unblacklist a user.
+
+        `user`: The user to remove from the blacklist.
+        """
+
+        user_config = self.bot.user_manager.get_config(user_id=user.id)
+        if user_config.blacklisted is False:
+            raise exceptions.ArgumentError(f'That user is not blacklisted.')
+
+        await self.bot.user_manager.set_blacklisted(user_id=user.id, blacklisted=False)
+        await ctx.send(f'Unblacklisted user `{user.id}`.')
 
 
 def setup(bot: SemiBotomatic) -> None:

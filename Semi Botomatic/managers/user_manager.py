@@ -4,14 +4,12 @@ import io
 import logging
 import math
 import os
-from typing import Any, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union
 
 import pendulum
 from PIL import Image, ImageDraw, ImageFont
-from discord.ext import tasks
 
 from utilities import exceptions, objects
-from utilities.enums import Editables, Operations
 
 if TYPE_CHECKING:
     from bot import SemiBotomatic
@@ -27,8 +25,6 @@ class UserManager:
         self.default_config = objects.DefaultUserConfig()
         self.configs = {}
 
-        self.update_database.start()
-
     async def load(self) -> None:
 
         configs = await self.bot.db.fetch('SELECT * FROM users')
@@ -43,29 +39,7 @@ class UserManager:
 
     #
 
-    @tasks.loop(seconds=60)
-    async def update_database(self) -> None:
-
-        if not self.configs:
-            return
-
-        need_updating = {user_id: user_config for user_id, user_config in self.configs.items() if len(user_config.requires_db_update) >= 1}
-
-        async with self.bot.db.acquire(timeout=300) as db:
-            for user_id, user_config in need_updating.items():
-
-                query = ','.join(f'{editable.value} = ${index + 2}' for index, editable in enumerate(user_config.requires_db_update))
-                await db.execute(f'UPDATE users SET {query} WHERE id = $1', user_id, *[getattr(user_config, attribute.value) for attribute in user_config.requires_db_update])
-
-                user_config.requires_db_update = []
-
-    @update_database.before_loop
-    async def before_update_database(self) -> None:
-        await self.bot.wait_until_ready()
-
-    #
-
-    async def create_user_config(self, *, user_id: int) -> objects.UserConfig:
+    async def create_config(self, *, user_id: int) -> objects.UserConfig:
 
         data = await self.bot.db.fetchrow('INSERT INTO users (id) values ($1) ON CONFLICT (id) DO UPDATE SET id = excluded.id RETURNING *', user_id)
         self.configs[user_id] = objects.UserConfig(data=dict(data))
@@ -73,89 +47,53 @@ class UserManager:
         __log__.info(f'[USER MANAGER] Created config for user with id \'{user_id}\'')
         return self.configs[user_id]
 
-    def get_user_config(self, *, user_id: int) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
+    async def get_or_create_config(self, *, user_id: int) -> objects.UserConfig:
+
+        user_config = self.get_config(user_id=user_id)
+        if isinstance(user_config, objects.DefaultUserConfig):
+            user_config = await self.create_config(user_id=user_id)
+
+        return user_config
+
+    def get_config(self, *, user_id: int) -> Union[objects.DefaultUserConfig, objects.UserConfig]:
         return self.configs.get(user_id, self.default_config)
 
-    async def get_or_create_user_config(self, *, user_id: int) -> objects.UserConfig:
+    #
 
-        user_config = self.get_user_config(user_id=user_id)
-        if isinstance(user_config, objects.DefaultUserConfig):
-            user_config = await self.create_user_config(user_id=user_id)
+    async def set_timezone(self, *, user_id: int, timezone: str = 'UTC', private: bool = False) -> None:
 
-        return user_config
+        user_config = await self.get_or_create_config(user_id=user_id)
+        timezone = str(user_config.timezone) if timezone is None else timezone
 
-    async def edit_user_config(self, *, user_id: int, editable: Editables, operation: Operations, value: Any = None) -> objects.UserConfig:
+        data = await self.bot.db.fetchrow('UPDATE users SET timezone = $1, timezone_private = $2 WHERE id = $3 RETURNING timezone, timezone_private', timezone, private, user_id)
+        user_config.timezone = pendulum.timezone(data['timezone'])
+        user_config.timezone_private = private
 
-        user_config = self.get_user_config(user_id=user_id)
-        if isinstance(user_config, objects.DefaultUserConfig):
-            user_config = await self.create_user_config(user_id=user_id)
+    async def set_birthday(self, *, user_id: int, birthday: pendulum.datetime = None, private: bool = None) -> None:
 
-        __log__.info(f'[USER MANAGERS] Edited user config for user with id \'{user_id}\'. Editable: {editable.value} | Operation: {operation.value} | Value: {value}')
+        user_config = await self.get_or_create_config(user_id=user_id)
+        birthday = user_config.birthday if birthday is None else birthday
+        private = user_config.timezone_private if private is None else private
 
-        if editable == Editables.blacklist:
+        data = await self.bot.db.fetchrow('UPDATE users SET birthday = $1, birthday_private = $2 WHERE id = $3 RETURNING birthday, birthday_private', birthday, private, user_id)
+        user_config.birthday = pendulum.parse(data['birthday'].isoformat(), tz='UTC')
+        user_config.birthday_private = private
 
-            operations = {
-                Operations.set.value:
-                    ('UPDATE users SET blacklisted = $1, blacklisted_reason = $2 WHERE id = $3 RETURNING blacklisted, blacklisted_reason', True, value, user_id),
-                Operations.reset.value:
-                    ('UPDATE users SET blacklisted = $1, blacklisted_reason = $2 WHERE id = $3 RETURNING blacklisted, blacklisted_reason', False, None, user_id)
-            }
+    async def set_blacklisted(self, *, user_id: int, blacklisted: bool = True, reason: str = None) -> None:
 
-            data = await self.bot.db.fetchrow(*operations[operation.value])
-            user_config.blacklisted = data['blacklisted']
-            user_config.blacklisted_reason = data['blacklisted_reason']
+        user_config = await self.get_or_create_config(user_id=user_id)
 
-        elif editable == Editables.timezone:
+        query = 'UPDATE users SET blacklisted = $1, blacklisted_reason = $2 WHERE id = $3 RETURNING blacklisted, blacklisted_reason'
+        data = await self.bot.db.fetchrow(query, blacklisted, reason, user_id)
+        user_config.blacklisted = data['blacklisted']
+        user_config.blacklisted_reason = data['blacklisted_reason']
 
-            operations = {
-                Operations.set.value: ('UPDATE users SET timezone = $1 WHERE id = $2 RETURNING timezone', value, user_id),
-                Operations.reset.value: ('UPDATE users SET timezone = $1 WHERE id = $2 RETURNING timezone', 'UTC', user_id)
-            }
+    async def set_spotify_token(self, user_id: int, token: str) -> None:
 
-            data = await self.bot.db.fetchrow(*operations[operation.value])
-            user_config.timezone = pendulum.timezone(data['timezone'])
+        user_config = await self.get_or_create_config(user_id=user_id)
 
-        elif editable == Editables.timezone_private:
-
-            operations = {
-                Operations.set.value: ('UPDATE users SET timezone_private = $1 WHERE id = $2 RETURNING timezone_private', True, user_id),
-                Operations.reset.value: ('UPDATE users SET timezone_private = $1 WHERE id = $2 RETURNING timezone_private', False, user_id)
-            }
-
-            data = await self.bot.db.fetchrow(*operations[operation.value])
-            user_config.timezone_private = data['timezone_private']
-
-        elif editable == Editables.birthday:
-
-            operations = {
-                Operations.set.value: ('UPDATE users SET birthday = $1 WHERE id = $2 RETURNING birthday', value, user_id),
-                Operations.reset.value: ('UPDATE users SET birthday = $1 WHERE id = $2 RETURNING birthday', pendulum.datetime(year=2020, month=1, day=1), user_id)
-            }
-
-            data = await self.bot.db.fetchrow(*operations[operation.value])
-            user_config.birthday = pendulum.parse(data['birthday'].isoformat(), tz='UTC')
-
-        elif editable == Editables.birthday_private:
-
-            operations = {
-                Operations.set.value: ('UPDATE users SET birthday_private = $1 WHERE id = $2 RETURNING birthday_private', True, user_id),
-                Operations.reset.value: ('UPDATE users SET birthday_private = $1 WHERE id = $2 RETURNING birthday_private', False, user_id)
-            }
-
-            data = await self.bot.db.fetchrow(*operations[operation.value])
-            user_config.birthday_private = data['birthday_private']
-
-        elif editable == Editables.spotify_refresh_token:
-
-            operations = {
-                Operations.set.value: ('UPDATE users SET spotify_refresh_token = $1 WHERE id = $2 RETURNING spotify_refresh_token', value, user_id),
-                Operations.reset.value: ('UPDATE users SET spotify_refresh_token = $1 WHERE id = $2 RETURNING spotify_refresh_token', None, user_id),
-            }
-
-            data = await self.bot.db.fetchrow(*operations[operation.value])
-            user_config.spotify_refresh_token = data['spotify_refresh_token']
-
-        return user_config
+        data = await self.bot.db.fetchrow('UPDATE users SET spotify_refresh_token = $1 WHERE id = $2 RETURNING spotify_refresh_token', token, user_id)
+        user_config.spotify_refresh_token = data['spotify_refresh_token']
 
     #
 
