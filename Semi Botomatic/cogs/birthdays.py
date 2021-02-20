@@ -166,7 +166,7 @@ class Birthdays(commands.Cog):
                                 lambda c: ctx.guild.get_member(c[1].id) is not None and (c[1].birthday_private is False and c[1].birthday != self.default_birthday),
                                 self.bot.user_manager.configs.items()
                         ),
-                        key=lambda config: config[1].birthday
+                        key=lambda config: config[1].next_birthday
                 )
         )
 
