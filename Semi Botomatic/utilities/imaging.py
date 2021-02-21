@@ -144,6 +144,44 @@ def floor(image: Union[Image, SingleImage]):
     return image, ''
 
 
+def cube(image: Union[Image, SingleImage]):
+
+    def d3(x: int):
+        return int(x / 3)
+
+    image.resize(1000, 1000)
+    image.alpha_channel = 'opaque'
+
+    top = Image(image)
+    top.resize(d3(1000), d3(860))
+
+    right = Image(image)
+    right.resize(d3(1000), d3(860))
+
+    left = Image(image)
+    left.resize(d3(1000), d3(860))
+
+    image.gaussian_blur(sigma=5)
+
+    image.resize(width=d3(3000 - 450), height=d3(860 - 100) * 3)
+
+    top.shear(x=-30, background=Color('none'))
+    top.rotate(degree=-30)
+    image.composite(top, left=d3(500 - 250), top=d3(0 - 230) + d3(118))
+
+    right.shear(background=Color('none'), x=30)
+    right.rotate(degree=-30)
+    image.composite(right, left=d3(1000 - 250) - d3(72), top=d3(860 - 230))
+
+    left.shear(background=Color('none'), x=-30)
+    left.rotate(degree=30)
+    image.composite(left, left=d3(0 - 250) + d3(68), top=d3(860 - 230))
+
+    image.crop(left=80, top=40, right=665, bottom=710)
+    return image, ''
+
+
+
 image_operations = {
     'blur': blur,
     'edge': edge,
@@ -164,7 +202,8 @@ image_operations = {
     'flip': flip,
     'flop': flop,
     'rotate': rotate,
-    'floor': floor
+    'floor': floor,
+    'cube': cube
 }
 
 
