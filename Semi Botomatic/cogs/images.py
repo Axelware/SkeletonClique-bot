@@ -1,10 +1,30 @@
 import random
+from inspect import Parameter
 from typing import Literal, Optional
 
 from discord.ext import commands
 
 from bot import SemiBotomatic
 from utilities import context, converters, exceptions, imaging
+
+
+_old_transform = commands.Command.transform
+
+
+def _transform(self, ctx, param):
+
+    if param.annotation is Optional[converters.ImageConverter]:
+
+        if ctx.message.attachments:
+            param = Parameter(param.name, param.kind, default=ctx.message.attachments[0].url, annotation=param.annotation)
+        else:
+            default = str(ctx.author.avatar_url_as(format='gif' if ctx.author.is_avatar_animated() is True else 'png'))
+            param = Parameter(param.name, param.kind, default=default, annotation=param.annotation)
+
+    return _old_transform(self, ctx, param)
+
+
+commands.Command.transform = _transform
 
 
 class Images(commands.Cog):
