@@ -58,10 +58,10 @@
                             <a class="nav-link link-dark underline" href="/">Home</a>
                         </li>
                         <li class="nav-item px-2">
-                            <a class="nav-link link-dark underline active" href="/timezones">Timezones</a>
+                            <a class="nav-link link-dark underline" href="/timezones">Timezones</a>
                         </li>
                         <li class="nav-item px-2">
-                            <a class="nav-link link-dark underline" href="/staff">Staff</a>
+                            <a class="nav-link link-dark underline active" href="/staff">Staff</a>
                         </li>
                     </ul>
                 </div>
@@ -71,18 +71,42 @@
 
         <div class="container">
 
-            <form class="pt-3 pb-1 fade-in" autocomplete="off">
-                <div>
-                    <label for="timezoneSearch"></label><input type="search" id="timezoneSearch" class="form-control">
-                </div>
-            </form>
-
-            <div class="row g-3" id="timezoneList">
-                {% for timezone in timezones %}
-                    <div class="col-6 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+            <h3 class="py-2">Admins</h3>
+            <div class="row g-3">
+                {% for admin in admins %}
+                    <div class="col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2">
                         <div class="card border-0 fade-in">
-                            <div class="card-body">
-                                <p class="card-text">{{ timezone }}</p>
+                            <div class="card-body pb-0">
+                                <img class="card-img rounded" src="{{ admin['image'] }}" alt="{{ admin['name'] }} profile picture">
+                                <p class="card-title py-2">{{ admin['name'] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h3 class="py-2">Bot Developers</h3>
+            <div class="row g-3">
+                {% for bot_developer in bot_developers %}
+                    <div class="col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="card border-0 fade-in">
+                            <div class="card-body pb-0">
+                                <img class="card-img rounded" src="{{ bot_developer['image'] }}" alt="{{ bot_developer['name'] }} profile picture">
+                                <p class="card-title py-2">{{ bot_developer['name'] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h3 class="py-2">Moderators</h3>
+            <div class="row g-3">
+                {% for moderator in moderators %}
+                    <div class="col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="card border-0 fade-in">
+                            <div class="card-body pb-0">
+                                <img class="card-img rounded" src="{{ moderator['image'] }}" alt="{{ moderator['name'] }} profile picture">
+                                <p class="card-title py-2">{{ moderator['name'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -92,7 +116,6 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
-        <script type='module' src="{{ static('bundle.js') }}"></script>
     </body>
 
 </html>
