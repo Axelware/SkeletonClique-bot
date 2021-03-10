@@ -51,7 +51,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='adaptive_blur', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='adaptive_blur', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -73,7 +73,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `50`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='adaptive_sharpen', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='adaptive_sharpen', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -90,7 +90,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Factor must be be between `0` and `20`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='blueshift', factor=factor)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='blueshift', factor=factor)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -112,7 +112,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='blur', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='blur', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -131,7 +131,7 @@ class Images(commands.Cog):
             colour = '#%02X%02X%02X' % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='border', colour=str(colour), width=width, height=height)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='border', colour=str(colour), width=width, height=height)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -153,7 +153,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='edge', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='edge', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -175,7 +175,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `-5.0` and `5.0`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='charcoal', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='charcoal', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -192,7 +192,7 @@ class Images(commands.Cog):
             colour = '#%02X%02X%02X' % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='colorize', colour=str(colour))
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='colorize', colour=str(colour))
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -205,7 +205,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='despeckle')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='despeckle')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -218,7 +218,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='floor')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='floor')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -240,7 +240,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='emboss', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='emboss', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -253,7 +253,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='enhance')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='enhance')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -266,7 +266,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='flip')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='flip')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -279,7 +279,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='flop')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='flop')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -302,7 +302,7 @@ class Images(commands.Cog):
             colour = '#%02X%02X%02X' % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='frame', matte=str(colour), height=height, width=width, inner_bevel=inner, outer_bevel=outer)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='frame', matte=str(colour), height=height, width=width, inner_bevel=inner, outer_bevel=outer)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -324,7 +324,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='gaussian_blur', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='gaussian_blur', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -341,7 +341,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Amount must be between `-20` and `20`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='implode', amount=amount)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='implode', amount=amount)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -358,7 +358,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Number of colours must be less than 1024.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='kmeans', number_colours=colours)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='kmeans', number_colours=colours)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -380,7 +380,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `20`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='kuwahara', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='kuwahara', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -403,7 +403,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='motion_blur', radius=radius, sigma=sigma, angle=angle)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='motion_blur', radius=radius, sigma=sigma, angle=angle)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -416,7 +416,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='negate')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='negate')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -437,7 +437,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Attenuate must be between `0.0` and `1.0`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='noise', method=method, attenuate=attenuate)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='noise', method=method, attenuate=attenuate)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -459,7 +459,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `30`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='oil_paint', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='oil_paint', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -479,7 +479,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Caption must be `100` characters or less.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='polaroid', angle=angle, caption=caption)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='polaroid', angle=angle, caption=caption)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -496,7 +496,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Degree must be between `-360` and `360`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='rotate', degree=degree)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='rotate', degree=degree)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -513,7 +513,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Threshold must be between `0.0` and `1.0`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='sepia_tone', threshold=threshold)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='sepia_tone', threshold=threshold)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -535,7 +535,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Sigma must be between `0` and `50`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='sharpen', radius=radius, sigma=sigma)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='sharpen', radius=radius, sigma=sigma)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -552,7 +552,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Threshold must be between `0.0` and `1.0`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='solarize', threshold=threshold)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='solarize', threshold=threshold)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -569,7 +569,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Radius must be between `0` and `50`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='spread', radius=radius)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='spread', radius=radius)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -586,7 +586,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Degree must be between `-360` and `360`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='swirl', degree=degree)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='swirl', degree=degree)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -603,7 +603,7 @@ class Images(commands.Cog):
             raise exceptions.ArgumentError('Transparency must be between `0.0` and `1.0`.')
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='transparentize', transparency=transparency)
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='transparentize', transparency=transparency)
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -616,7 +616,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='transpose')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='transpose')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -629,7 +629,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='transverse')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='transverse')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -642,7 +642,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='wave')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='wave')
             await ctx.reply(embed=embed)
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -655,7 +655,7 @@ class Images(commands.Cog):
         """
 
         async with ctx.channel.typing():
-            embed = await imaging.edit_image(ctx=ctx, url=image, edit_type='cube')
+            embed = await imaging.edit_image(ctx=ctx, url=str(image), edit_type='cube')
             await ctx.reply(embed=embed)
 
 
