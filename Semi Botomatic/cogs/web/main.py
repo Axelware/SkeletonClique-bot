@@ -30,7 +30,7 @@ async def load(bot: SemiBotomatic) -> SemiBotomaticWeb:
 
     app = SemiBotomaticWeb(bot=bot)
 
-    endpoints = ['api.spotify', 'index', 'timezones', 'links']
+    endpoints = ['api.spotify', 'api.metrics', 'index', 'timezones', 'links']
     for endpoint in [importlib.import_module(f'cogs.web.endpoints.{endpoint}') for endpoint in endpoints]:
         endpoint.setup(app=app)
 
