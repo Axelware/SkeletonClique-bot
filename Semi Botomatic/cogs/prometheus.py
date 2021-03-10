@@ -136,7 +136,7 @@ class Prometheus(commands.Cog):
 
         self.gauges.labels(count='uptime').set(round(time.time() - self.bot.start_time))
         self.gauges.labels(count='threads').set(self.bot.process.num_threads())
-        self.gauges.labels(count='cpu').set(self.bot.process.cpu_percent())
+        self.gauges.labels(count='cpu').set(self.bot.process.cpu_percent(interval=None))
 
         with self.bot.process.oneshot():
             memory_info = self.bot.process.memory_full_info()
