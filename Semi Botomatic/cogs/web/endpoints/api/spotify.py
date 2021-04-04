@@ -29,7 +29,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
 
     if (code := request.query.get('code')) is not None:
 
-        data = {
+        request_data = {
             'grant_type':   'authorization_code',
             'code':         code,
             'redirect_uri': f'{config.SPOTIFY_CALLBACK_URI}api/spotify/callback',
@@ -38,7 +38,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
             'client_secret': config.SPOTIFY_CLIENT_SECRET
         }
 
-        async with request.app.session.post('https://accounts.spotify.com/api/token', data=data) as post:
+        async with request.app.session.post('https://accounts.spotify.com/api/token', data=request_data) as post:
 
             data = await post.json()
 
