@@ -12,11 +12,10 @@ class TooManyIDs(SpotifyException):
 
 class SpotifyRequestError(SpotifyException):
 
-    def __init__(self, error: dict) -> None:
-        super().__init__()
+    def __init__(self, data: dict) -> None:
+        super().__init__(data)
 
-        self.status = error.get('status')
-        self.message = error.get('message')
+        self.data = data
 
 
 class BadRequest(SpotifyRequestError):
@@ -24,11 +23,15 @@ class BadRequest(SpotifyRequestError):
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
+        self.data = data
+
 
 class Unauthorized(SpotifyRequestError):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
+
+        self.data = data
 
 
 class Forbidden(SpotifyRequestError):
@@ -36,11 +39,15 @@ class Forbidden(SpotifyRequestError):
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
+        self.data = data
+
 
 class NotFound(SpotifyRequestError):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
+
+        self.data = data
 
 
 class TooManyRequests(SpotifyRequestError):
@@ -48,11 +55,15 @@ class TooManyRequests(SpotifyRequestError):
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
+        self.data = data
+
 
 class InternalServerError(SpotifyRequestError):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
+
+        self.data = data
 
 
 class BadGatewayError(SpotifyRequestError):
@@ -60,8 +71,12 @@ class BadGatewayError(SpotifyRequestError):
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
+        self.data = data
+
 
 class ServiceUnavailable(SpotifyRequestError):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
+
+        self.data = data

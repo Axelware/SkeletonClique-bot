@@ -27,7 +27,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
         await user.send(f'Something went wrong while connecting your spotify account, please try again.')
         return aiohttp.web.json_response({'error': error}, status=401)
 
-    elif (code := request.query.get('code')) is not None:
+    if (code := request.query.get('code')) is not None:
 
         data = {
             'grant_type':   'authorization_code',
