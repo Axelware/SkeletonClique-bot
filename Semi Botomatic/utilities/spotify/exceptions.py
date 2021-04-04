@@ -13,6 +13,7 @@ class TooManyIDs(SpotifyException):
 class SpotifyRequestError(SpotifyException):
 
     def __init__(self, error: dict) -> None:
+        super().__init__()
 
         self.status = error.get('status')
         self.message = error.get('message')

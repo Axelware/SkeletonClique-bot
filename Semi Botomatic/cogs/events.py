@@ -242,7 +242,7 @@ class Events(commands.Cog):
                 try:
                     await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`:', file=await attachment.to_file(use_cached=True),
                                                    username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
-                except discord.HTTPException or discord.Forbidden or discord.NotFound:
+                except (discord.HTTPException, discord.Forbidden, discord.NotFound):
                     continue
 
     @commands.Cog.listener()

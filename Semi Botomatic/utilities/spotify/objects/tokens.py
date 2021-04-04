@@ -94,7 +94,7 @@ class UserAuthToken:
 
     async def refresh(self, client: Client) -> None:
 
-        data = {
+        request_data = {
             'grant_type':   'refresh_token',
             'refresh_token': self.refresh_token,
 
@@ -102,7 +102,7 @@ class UserAuthToken:
             'client_secret': client.client_secret
         }
 
-        async with client.bot.session.post(TOKEN_URL, data=data) as post:
+        async with client.bot.session.post(TOKEN_URL, data=request_data) as post:
             data = await post.json()
 
             if (error := data.get('error')) is not None:
@@ -119,7 +119,7 @@ class UserAuthToken:
     @classmethod
     async def create_from_refresh_token(cls, client: Client, refresh_token: str) -> UserAuthToken:
 
-        data = {
+        request_data = {
             'grant_type':   'refresh_token',
             'refresh_token': refresh_token,
 
@@ -127,7 +127,7 @@ class UserAuthToken:
             'client_secret': client.client_secret
         }
 
-        async with client.bot.session.post(TOKEN_URL, data=data) as post:
+        async with client.bot.session.post(TOKEN_URL, data=request_data) as post:
             data = await post.json()
 
             if (error := data.get('error')) is not None:

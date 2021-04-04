@@ -1,5 +1,6 @@
 import collections
 import sys
+import time
 
 import discord
 import humanize
@@ -83,7 +84,6 @@ class Dev(commands.Cog):
 
         event_stats = collections.OrderedDict(sorted(self.bot.socket_stats.items(), key=lambda kv: kv[1], reverse=True))
         events_total = sum(event_stats.values())
-        # noinspection PyUnresolvedReferences
         events_per_second = round(events_total / round(time.time() - self.bot.start_time))
 
         description = [f'```py\n{events_total} socket events observed at a rate of {events_per_second} per second.\n']
