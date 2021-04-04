@@ -1,7 +1,8 @@
+from utilities.spotify.objects.base import BaseObject, PagingObject
+
 from utilities.spotify.objects.album import Album, AlbumRestriction, SimpleAlbum
 from utilities.spotify.objects.artist import Artist, SimpleArtist
 from utilities.spotify.objects.audio_features import AudioFeatures
-from utilities.spotify.objects.base import BaseObject, PagingObject
 from utilities.spotify.objects.copyright import Copyright
 from utilities.spotify.objects.current_playback import Context, CurrentlyPlaying, CurrentlyPlayingContext, Device, Disallows
 from utilities.spotify.objects.enums import CopyrightType, IncludeGroups, Key, Mode, SearchType
