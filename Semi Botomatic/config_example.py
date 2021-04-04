@@ -16,7 +16,7 @@ EXTENSIONS = [
     'jishaku',
 ]
 OWNER_IDS = {
-    0, 0, 0, 0, 0
+    0, 1, 2, 3, 4
 }
 
 # Tokens

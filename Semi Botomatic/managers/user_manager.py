@@ -170,8 +170,4 @@ class UserManager:
         buffer.seek(0)
 
         image.close()
-        del image
-        del draw
-        del font
-
         return buffer

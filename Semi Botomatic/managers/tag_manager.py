@@ -34,7 +34,7 @@ class TagManager:
     #
 
     def get_tag(self, *, name: str) -> Optional[objects.Tag]:
-        return self.tags.get(name, None)
+        return self.tags.get(name)
 
     def get_tags(self) -> Optional[List[objects.Tag]]:
         return list(self.tags.values())
