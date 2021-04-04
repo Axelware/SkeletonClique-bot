@@ -43,7 +43,7 @@ class Disallows:
         self.transferring_playback: bool = data.get('transferring_playback', False)
 
     def __repr__(self) -> str:
-        return f'<spotify.Disallows>'
+        return '<spotify.Disallows>'
 
 
 class Device:
