@@ -20,7 +20,7 @@ class Settings(commands.Cog):
 
         embed = discord.Embed(
                 colour=ctx.colour,
-                title=f'Guild settings:',
+                title='Guild settings:',
                 description=f'`Embed size`: {ctx.guild_config.embed_size.name.title()}'
         )
         await ctx.send(embed=embed)
@@ -54,7 +54,7 @@ class Settings(commands.Cog):
         elif operation == 'reset':
 
             await self.bot.guild_manager.set_embed_size(guild_id=ctx.guild.id)
-            await ctx.send(f'Set this servers embed size to `Large`.')
+            await ctx.send('Set this servers embed size to `Large`.')
 
 
 def setup(bot: SemiBotomatic):

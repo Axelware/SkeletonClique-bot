@@ -50,7 +50,7 @@ class Radio(commands.Cog):
 
         channel = getattr(ctx.author.voice, 'channel', None)
         if not channel or channel.id != ctx.voice_client.channel.id:
-            raise exceptions.VoiceError(f'You must be connected to the same voice channel as me to use this command.')
+            raise exceptions.VoiceError('You must be connected to the same voice channel as me to use this command.')
 
 
 

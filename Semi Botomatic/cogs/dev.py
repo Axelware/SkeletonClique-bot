@@ -132,7 +132,7 @@ class Dev(commands.Cog):
 
         user_config = self.bot.user_manager.get_config(user_id=user.id)
         if user_config.blacklisted is True:
-            raise exceptions.ArgumentError(f'That user is already blacklisted.')
+            raise exceptions.ArgumentError('That user is already blacklisted.')
 
         await self.bot.user_manager.set_blacklisted(user_id=user.id, reason=reason)
         await ctx.send(f'Blacklisted user `{user.id}` with reason:\n\n`{reason}`')
@@ -147,7 +147,7 @@ class Dev(commands.Cog):
 
         user_config = self.bot.user_manager.get_config(user_id=user.id)
         if user_config.blacklisted is False:
-            raise exceptions.ArgumentError(f'That user is not blacklisted.')
+            raise exceptions.ArgumentError('That user is not blacklisted.')
 
         await self.bot.user_manager.set_blacklisted(user_id=user.id, blacklisted=False)
         await ctx.send(f'Unblacklisted user `{user.id}`.')
