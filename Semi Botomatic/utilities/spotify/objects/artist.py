@@ -5,7 +5,7 @@ from utilities.spotify import objects
 
 class SimpleArtist(objects.BaseObject):
 
-    __slots__ = 'external_urls'
+    __slots__ = 'external_urls',
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
