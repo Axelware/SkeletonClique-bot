@@ -228,7 +228,7 @@ class Information(commands.Cog):
         categories = [category for category in guild.channels if isinstance(category, discord.CategoryChannel)]
 
         entries = [
-            f'{await converters.ChannelEmojiConverter().convert(ctx=ctx, channel=channel)}{channel}'
+            f'{await converters.ChannelEmojiConverter().convert(ctx=ctx, argument=channel)}{channel}'
             for channel in sorted(channels, key=lambda channel: channel.position)
         ]
 
@@ -236,7 +236,7 @@ class Information(commands.Cog):
         for category in sorted(categories, key=lambda category: category.position):
             entries.append(f'<:category:738960756233601097> **{category}**')
             for channel in category.channels:
-                entries.append(f'{space}{await converters.ChannelEmojiConverter().convert(ctx=ctx, channel=channel)}{channel}')
+                entries.append(f'{space}{await converters.ChannelEmojiConverter().convert(ctx=ctx, argument=channel)}{channel}')
 
         await ctx.paginate_embed(entries=entries, per_page=30, title=f'`{guild.name}`\'s channels.')
 
@@ -260,7 +260,7 @@ class Information(commands.Cog):
 
         if guild.is_icon_animated():
             embed.description += f' | [GIF]({guild.icon_url_as(format="gif")})'
-            embed.set_image(url=str(guild.icon_url_as(size=1024, format='gif')))
+            embed.set_image(url=str(guild.icon_url_as(format='gif')))
 
         await ctx.send(embed=embed)
 
@@ -279,7 +279,7 @@ class Information(commands.Cog):
             raise exceptions.ArgumentError(f'The server `{guild.name}` does not have a banner.')
 
         embed = discord.Embed(colour=ctx.colour, title=f'`{guild.name}`\'s banner')
-        embed.description = f'[PNG]({guild.banner_url_as(format="png")}) | [JPEG]({guild.banner_url_as(format="jpeg")}) | [WEBP]({guild.banner_url_as(format="webp")})'
+        embed.description = f'[PNG]({guild.banner_url_as(format="png")}) | [JPEG]({guild.banner_url_as(format="jpeg")}) | [WEBP]({guild.banner_url_as()})'
         embed.set_image(url=str(guild.banner_url_as(format='png')))
 
         await ctx.send(embed=embed)
@@ -299,7 +299,7 @@ class Information(commands.Cog):
             raise exceptions.ArgumentError(f'The server `{guild.name}` does not have an splash.')
 
         embed = discord.Embed(colour=ctx.colour, title=f'`{guild.name}`\'s splash')
-        embed.description = f'[PNG]({guild.splash_url_as(format="png")}) | [JPEG]({guild.splash_url_as(format="jpeg")}) | [WEBP]({guild.splash_url_as(format="webp")})'
+        embed.description = f'[PNG]({guild.splash_url_as(format="png")}) | [JPEG]({guild.splash_url_as(format="jpeg")}) | [WEBP]({guild.splash_url_as()})'
         embed.set_image(url=str(guild.splash_url_as(format='png')))
 
         await ctx.send(embed=embed)

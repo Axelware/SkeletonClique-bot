@@ -40,7 +40,7 @@ class Settings(commands.Cog):
             await ctx.send(f'This servers embed size is `{ctx.guild_config.embed_size.name.title()}`.')
             return
 
-        if await self.bot.is_owner(person=ctx.author) is False:
+        if await self.bot.is_owner(user=ctx.author) is False:
             await commands.has_guild_permissions(manage_guild=True).predicate(ctx=ctx)
 
         if operation == 'set':
