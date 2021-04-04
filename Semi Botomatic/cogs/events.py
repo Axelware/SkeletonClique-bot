@@ -19,7 +19,7 @@ __log__ = logging.getLogger(__name__)
 
 class Events(commands.Cog):
 
-    def __init__(self, *, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
         self.BAD_ARGUMENT_ERRORS = {
@@ -38,30 +38,30 @@ class Events(commands.Cog):
         }
 
         self.COOLDOWN_BUCKETS = {
-            commands.BucketType.default:  f'for the whole bot',
-            commands.BucketType.user:     f'for you',
-            commands.BucketType.member:   f'for you',
-            commands.BucketType.role:     f'for your role',
-            commands.BucketType.guild:    f'for this server',
-            commands.BucketType.channel:  f'for this channel',
-            commands.BucketType.category: f'for this channel category'
+            commands.BucketType.default:  'for the whole bot',
+            commands.BucketType.user:     'for you',
+            commands.BucketType.member:   'for you',
+            commands.BucketType.role:     'for your role',
+            commands.BucketType.guild:    'for this server',
+            commands.BucketType.channel:  'for this channel',
+            commands.BucketType.category: 'for this channel category'
         }
 
         self.CONCURRENCY_BUCKETS = {
-            commands.BucketType.default:  f'for all users',
-            commands.BucketType.user:     f'per user',
-            commands.BucketType.member:   f'per member',
-            commands.BucketType.role:     f'per role',
-            commands.BucketType.guild:    f'per server',
-            commands.BucketType.channel:  f'per channel',
-            commands.BucketType.category: f'per channel category',
+            commands.BucketType.default:  'for all users',
+            commands.BucketType.user:     'per user',
+            commands.BucketType.member:   'per member',
+            commands.BucketType.role:     'per role',
+            commands.BucketType.guild:    'per server',
+            commands.BucketType.channel:  'per channel',
+            commands.BucketType.category: 'per channel category',
         }
 
         self.OTHER_ERRORS = {
             exceptions.ArgumentError:               '{error}',
             exceptions.GeneralError:                '{error}',
-            exceptions.VoiceError:                  '{error}',
             exceptions.ImageError:                  '{error}',
+            exceptions.VoiceError:                  '{error}',
             slate.NoNodesAvailable:                 'There are no music nodes available right now.',
 
             commands.TooManyArguments:              'You used too many arguments. Use `{prefix}help {command}` for more information on what arguments to use.',
@@ -84,7 +84,8 @@ class Events(commands.Cog):
 
         error = getattr(error, 'original', error)
 
-        __log__.error(f'[COMMANDS] Error while running command. Name: {ctx.command} | Error: {type(error)} | Invoker: {ctx.author} | Channel: {ctx.channel} ({ctx.channel.id})')
+        __log__.error(f'[COMMANDS] Error while running command. Name: {ctx.command} | Error: {type(error)} | Invoker: {ctx.author} | Channel: {ctx.channel} ({ctx.channel.id})'
+                      f'{f" | Guild: {ctx.guild} ({ctx.guild.id})" if ctx.guild else ""}')
 
         if isinstance(error, commands.CommandNotFound):
             return
@@ -140,9 +141,9 @@ class Events(commands.Cog):
         else:
             await self.handle_traceback(ctx=ctx, error=error)
 
-    async def handle_traceback(self, *, ctx: context.Context, error: Any) -> None:
+    async def handle_traceback(self, *, ctx: context.Context, error) -> None:
 
-        await ctx.send(f'Something went wrong while executing that command.')
+        await ctx.send('Something went wrong while executing that command.')
 
         error_traceback = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
         print(f'\n{error_traceback}\n', file=sys.stderr)
@@ -175,8 +176,9 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self) -> None:
 
-        print(f'\n[BOT] The bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}\n')
+        print(f'[BOT] The bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}\n')
         __log__.info(f'Bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}')
+
 
     #
 

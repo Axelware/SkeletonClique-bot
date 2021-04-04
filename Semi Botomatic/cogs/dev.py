@@ -14,7 +14,7 @@ from utilities import context, converters, exceptions
 
 class Dev(commands.Cog):
 
-    def __init__(self, *, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
     @commands.is_owner()

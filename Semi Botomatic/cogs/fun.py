@@ -12,7 +12,7 @@ from utilities import context, exceptions
 
 class Fun(commands.Cog):
 
-    def __init__(self, *, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
         self.RESPONSES = ['Yeah!', 'Hell yeah!!', 'I think so?', 'Maybe, not too sure', 'Totally', 'Of course', 'Yes', 'Perhaps...',

@@ -12,7 +12,7 @@ from utilities import context, converters, exceptions, utils
 
 class Information(commands.Cog):
 
-    def __init__(self, *, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
         self.FEATURES = {
