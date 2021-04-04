@@ -126,7 +126,7 @@ class Tags(commands.Cog):
 
         owner = ctx.guild.get_member(tag.user_id)
         if owner is not None:
-            raise exceptions.ArgumentError(f'The owner of that tag is still in the server.')
+            raise exceptions.ArgumentError('The owner of that tag is still in the server.')
 
         await self.bot.tag_manager.edit_tag_owner(name=str(name), user_id=ctx.author.id)
         await ctx.send(f'You claimed the tag with name `{name}`.')
@@ -237,7 +237,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError('There are no tags.')
 
         entries = [f'`{index + 1}.` {tag.name}' for index, tag in enumerate(tags)]
-        await ctx.paginate_embed(entries=entries, per_page=25, header=f'**Semi Botomatic\'s Tags:**\n\n')
+        await ctx.paginate_embed(entries=entries, per_page=25, header='**Semi Botomatic\'s Tags:**\n\n')
 
     @tag.command(name='info')
     async def tag_info(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:

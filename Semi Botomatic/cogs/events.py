@@ -230,7 +230,7 @@ class Events(commands.Cog):
         ctx = await self.bot.get_context(message=message)
         content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=message.content) if message.content else "*No content*"
 
-        embed = discord.Embed(colour=ctx.colour, title=f'Message deleted{f" (Bulk message delete)" if bulk else ""}:', description=f'{content}')
+        embed = discord.Embed(colour=ctx.colour, title=f'Message deleted{" (Bulk message delete)" if bulk else ""}:', description=f'{content}')
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {message.id}')

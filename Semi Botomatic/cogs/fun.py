@@ -107,7 +107,7 @@ class Fun(commands.Cog):
 
         counter = collections.Counter(random.choice(list(map(str, choices))) for _ in range(times))
         entries = [f'{item[:15] + (item[15:] and ".."):17} | {count / times:.2%}' for item, count in counter.most_common()]
-        await ctx.paginate_embed(entries=entries, per_page=10, codeblock=True, header=f'Choice            | Percentage\n')
+        await ctx.paginate_embed(entries=entries, per_page=10, codeblock=True, header='Choice            | Percentage\n')
         
     @commands.command(name='book')
     async def book(self, ctx: context.Context, *, language: str = None) -> None:

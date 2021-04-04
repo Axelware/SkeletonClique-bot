@@ -24,7 +24,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
     #
 
     if (error := request.query.get('error')) is not None:
-        await user.send(f'Something went wrong while connecting your spotify account, please try again.')
+        await user.send('Something went wrong while connecting your spotify account, please try again.')
         return aiohttp.web.json_response({'error': error}, status=401)
 
     if (code := request.query.get('code')) is not None:
@@ -50,7 +50,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
         bot.spotify.user_auth_tokens[user.id] = objects.tokens.UserAuthToken(**data)
         del bot.spotify.user_auth_states[state]
 
-        await user.send(f'Your spotify account was successfully linked.')
+        await user.send('Your spotify account was successfully linked.')
         return aiohttp.web.Response(body='Spotify account link was successful, you can close this page now.')
 
     return aiohttp.web.Response(status=500)
