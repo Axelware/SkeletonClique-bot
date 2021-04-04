@@ -34,14 +34,14 @@ class AppAuthToken:
     @classmethod
     async def create(cls, *, client: Client) -> AppAuthToken:
 
-        data = {
+        request_data = {
             'grant_type':    'client_credentials',
 
             'client_id':     client.client_id,
             'client_secret': client.client_secret
         }
 
-        async with client.bot.session.post(TOKEN_URL, data=data) as post:
+        async with client.bot.session.post(TOKEN_URL, data=request_data) as post:
             data = await post.json()
 
             if (error := data.get('error')) is not None:
