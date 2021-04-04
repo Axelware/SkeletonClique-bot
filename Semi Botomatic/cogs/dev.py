@@ -1,6 +1,5 @@
 import collections
 import sys
-import time
 
 import discord
 import humanize
@@ -9,6 +8,7 @@ import setproctitle
 from discord.ext import commands
 
 import config
+import time
 from bot import SemiBotomatic
 from utilities import context, converters, exceptions
 

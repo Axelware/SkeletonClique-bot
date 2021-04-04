@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Optional, TYPE_CHECKING
 
-from utilities import objects, exceptions
+from utilities import exceptions, objects
 
 if TYPE_CHECKING:
     from bot import SemiBotomatic

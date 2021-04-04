@@ -7,7 +7,6 @@ from discord.ext import commands
 from bot import SemiBotomatic
 from utilities import context, converters, exceptions, imaging
 
-
 _old_transform = commands.Command.transform
 
 

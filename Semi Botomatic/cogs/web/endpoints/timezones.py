@@ -1,6 +1,6 @@
-import pendulum
 import aiohttp.web
 import aiohttp_jinja2
+import pendulum
 
 
 # noinspection PyUnusedLocal

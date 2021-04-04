@@ -1,5 +1,6 @@
-import aiohttp
 from typing import Union
+
+import aiohttp
 
 
 async def _json_or_text(request: aiohttp.ClientResponse) -> Union[dict, str]:
