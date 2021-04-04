@@ -163,7 +163,7 @@ class Client:
             parameters['market'] = market
 
         response = await self._request(objects.Request('GET', '/artists'), auth_token, parameters=parameters)
-        return {artist_id: artist for artist_id, artist in zip(artist_ids, [objects.Artist(data) if data is not None else None for data in response.get('artists')])}
+        return dict(zip(artist_ids, [objects.Artist(data) if data is not None else None for data in response.get('artists')]))
 
     async def get_artist(self, artist_id, *, market=None, auth_token=None):
         response = await self._request(objects.Request('GET', '/artists/{artist_id}', artist_id=artist_id), auth_token, parameters={'market': market} if market else None)
@@ -237,7 +237,7 @@ class Client:
             parameters['market'] = market
 
         response = await self._request(objects.Request('GET', '/albums'), auth_token, parameters=parameters)
-        return {album_id: album for album_id, album in zip(album_ids, [objects.Album(data) if data is not None else None for data in response.get('albums')])}
+        return dict(zip(album_ids, [objects.Album(data) if data is not None else None for data in response.get('albums')]))
 
     async def get_album(self, album_id, *, market=None, auth_token=None):
         response = await self._request(objects.Request('GET', '/albums/{album_id}', album_id=album_id), auth_token, parameters={'market': market} if market else None)
@@ -301,7 +301,7 @@ class Client:
             parameters['market'] = market
 
         response = await self._request(objects.Request('GET', '/tracks'), auth_token, parameters=parameters)
-        return {track_id: track for track_id, track in zip(track_ids, [objects.Track(data) if data is not None else None for data in response.get('tracks')])}
+        return dict(zip(track_ids, [objects.Track(data) if data is not None else None for data in response.get('tracks')]))
 
     async def get_track(self, track_id, market=None, auth_token=None):
         response = await self._request(objects.Request('GET', '/tracks/{track_id}', track_id=track_id), auth_token, parameters={'market': market} if market else None)
@@ -314,7 +314,7 @@ class Client:
 
         response = await self._request(objects.Request('GET', '/audio-features'), auth_token, parameters={'ids': ','.join(track_ids)})
         features = [objects.AudioFeatures(data) if data is not None else None for data in response.get('audio_features')]
-        return {track_id: audio_features for track_id, audio_features in zip(track_ids, features)}
+        return dict(zip(track_ids, features))
 
     async def get_track_audio_features(self, track_id, *, auth_token=None):
         response = await self._request(objects.Request('GET', '/audio-features/{track_id}', track_id=track_id), auth_token)

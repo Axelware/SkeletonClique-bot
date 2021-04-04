@@ -5,7 +5,7 @@ import datetime as dt
 import logging
 import os
 import pathlib
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 import discord
 import humanize
@@ -57,7 +57,7 @@ def format_datetime(*, datetime: Union[dt.datetime, DateTime], seconds: bool = F
 
 
 def format_date(*, datetime: Union[dt.datetime, DateTime]) -> str:
-    return convert_datetime(datetime=datetime).format(f'dddd MMMM Do YYYY')
+    return convert_datetime(datetime=datetime).format('dddd MMMM Do YYYY')
 
 
 def format_difference(*, datetime: Union[dt.datetime, DateTime], suppress=None) -> str:
@@ -72,18 +72,19 @@ def person_avatar(*, person: Union[discord.User, discord.Member]) -> str:
     return str(person.avatar_url_as(format='gif' if person.is_avatar_animated() else 'png'))
 
 
-def line_count() -> Tuple[int, int, int, int]:
+def line_count() -> tuple[int, int, int, int]:
 
     files, functions, lines, classes = 0, 0, 0, 0
     is_docstring = False
 
-    for dirpath, dirname, filenames in os.walk('.'):
+    for dirpath, _, filenames in os.walk('.'):
 
         for filename in filenames:
             if not filename.endswith('.py'):
                 continue
             files += 1
 
+            # noinspection PyArgumentEqualDefault
             with codecs.open('./' + str(pathlib.PurePath(dirpath, filename)), 'r', 'utf-8') as filelines:
                 filelines = [line.strip() for line in filelines]
                 for line in filelines:
@@ -113,10 +114,10 @@ def badges(*, bot: SemiBotomatic, person: Union[discord.User, discord.Member]) -
     if dict(person.public_flags)['verified_bot'] is False and person.bot:
         badges_list.append('<:bot:738979752244674674>')
 
-    if any([guild.get_member(person.id).premium_since for guild in bot.guilds if person in guild.members]):
+    if any(getattr(guild.get_member(person.id), 'premium_since', None) for guild in bot.guilds):
         badges_list.append('<:booster_level_4:738961099310760036>')
 
-    if person.is_avatar_animated() or any([guild.get_member(person.id).premium_since for guild in bot.guilds if person in guild.members]):
+    if person.is_avatar_animated() or any(getattr(guild.get_member(person.id), 'premium_since', None) for guild in bot.guilds):
         badges_list.append('<:nitro:738961134958149662>')
 
     elif member := discord.utils.get(bot.get_all_members(), id=person.id):
@@ -124,7 +125,7 @@ def badges(*, bot: SemiBotomatic, person: Union[discord.User, discord.Member]) -
             if activity.emoji and activity.emoji.is_custom_emoji():
                 badges_list.append('<:nitro:738961134958149662>')
 
-    return ' '.join(badges_list) if badges else 'N/A'
+    return ' '.join(badges_list) if badges_list else 'N/A'
 
 
 def activities(*, person: discord.Member) -> str:
@@ -136,7 +137,7 @@ def activities(*, person: discord.Member) -> str:
     for activity in person.activities:
 
         if activity.type == discord.ActivityType.custom:
-            message += f'• '
+            message += '• '
             if activity.emoji:
                 message += f'{activity.emoji} '
             if activity.name:
