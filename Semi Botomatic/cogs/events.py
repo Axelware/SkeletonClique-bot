@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 import traceback
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import discord
 import pendulum
@@ -246,7 +246,7 @@ class Events(commands.Cog):
                     continue
 
     @commands.Cog.listener()
-    async def on_bulk_message_delete(self, messages: List[discord.Message]) -> None:
+    async def on_bulk_message_delete(self, messages: list[discord.Message]) -> None:
 
         for message in messages:
             await self.on_message_delete(message=message, bulk=True)

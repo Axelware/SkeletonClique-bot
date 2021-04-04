@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, Optional
+from typing import Optional
 
 import pendulum
 from pendulum.datetime import DateTime
@@ -61,8 +61,8 @@ class DefaultUserConfig:
 
         self.spotify_refresh_token: Optional[str] = None
 
-        self.reminders: Dict[int, Reminder] = {}
-        self.todos: Dict[int, Todo] = {}
+        self.reminders: dict[int, Reminder] = {}
+        self.todos: dict[int, Todo] = {}
 
     def __repr__(self) -> str:
         return f'<DefaultUserConfig id=\'{self.id}\'>'
@@ -89,8 +89,8 @@ class UserConfig:
 
         self.spotify_refresh_token: Optional[str] = data.get('spotify_refresh_token')
 
-        self.reminders: Dict[int, Reminder] = {}
-        self.todos: Dict[int, Todo] = {}
+        self.reminders: dict[int, Reminder] = {}
+        self.todos: dict[int, Todo] = {}
 
     def __repr__(self) -> str:
         return f'<UserConfig id=\'{self.id}\'>'

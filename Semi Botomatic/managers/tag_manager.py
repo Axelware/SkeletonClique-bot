@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 import discord
 import rapidfuzz
@@ -20,7 +20,7 @@ class TagManager:
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
-        self.tags: Dict[str, objects.Tag] = {}
+        self.tags: dict[str, objects.Tag] = {}
 
     async def load(self) -> None:
 
@@ -36,13 +36,13 @@ class TagManager:
     def get_tag(self, *, name: str) -> Optional[objects.Tag]:
         return self.tags.get(name)
 
-    def get_tags(self) -> Optional[List[objects.Tag]]:
+    def get_tags(self) -> Optional[list[objects.Tag]]:
         return list(self.tags.values())
 
-    def get_tags_matching(self, *, name: str, limit: int = 5) -> Optional[List[objects.Tag]]:
+    def get_tags_matching(self, *, name: str, limit: int = 5) -> Optional[list[objects.Tag]]:
         return [self.tags[tag_name] for tag_name in [match[0] for match in rapidfuzz.process.extract(query=name, choices=self.tags.keys(), limit=limit, processor=lambda s: s)]]
 
-    def get_tags_owned_by(self, member: discord.Member) -> Optional[List[objects.Tag]]:
+    def get_tags_owned_by(self, member: discord.Member) -> Optional[list[objects.Tag]]:
         return [tag for tag in self.tags.values() if tag.user_id == member.id]
 
     #

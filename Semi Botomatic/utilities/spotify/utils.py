@@ -1,8 +1,8 @@
 import aiohttp
-from typing import Dict, Union
+from typing import Union
 
 
-async def _json_or_text(request: aiohttp.ClientResponse) -> Union[Dict, str]:
+async def _json_or_text(request: aiohttp.ClientResponse) -> Union[dict, str]:
 
     if request.headers['Content-Type'] == 'application/json; charset=utf-8':
         return await request.json()

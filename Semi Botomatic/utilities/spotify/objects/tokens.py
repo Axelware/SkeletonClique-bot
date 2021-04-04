@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from utilities.spotify import exceptions
 
@@ -79,7 +79,7 @@ class UserAuthToken:
 
         self.access_token: str = access_token
         self.token_type: str = token_type
-        self.scopes: List[str] = scope.split(' ')
+        self.scopes: list[str] = scope.split(' ')
         self.expires_in: int = expires_in
         self.refresh_token: str = refresh_token
 

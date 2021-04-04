@@ -1,4 +1,3 @@
-from typing import List
 
 from utilities.spotify import objects
 
@@ -50,7 +49,7 @@ VALID_KWARGS = [
 
 class Seed:
 
-    def __init__(self, *, artist_ids: List[str] = None, genres: List[str] = None, track_ids: List[str] = None, **kwargs) -> None:
+    def __init__(self, *, artist_ids: list[str] = None, genres: list[str] = None, track_ids: list[str] = None, **kwargs) -> None:
 
         self.parameters = {}
 

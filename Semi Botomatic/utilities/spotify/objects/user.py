@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 from utilities.spotify import objects
 
@@ -28,9 +28,9 @@ class User(objects.BaseObject):
         self.name: Optional[str] = data.get('display_name', None)
         self.email: Optional[str] = data.get('email', None)
         self.explicit_content_settings: Optional[ExplicitContentSettings] = ExplicitContentSettings(data.get('explicit_content')) if data.get('explicit_content') else None
-        self.external_urls: Dict[Optional[str], Optional[str]] = data.get('external_urls', {})
+        self.external_urls: dict[Optional[str], Optional[str]] = data.get('external_urls', {})
         self.followers: objects.Followers = objects.Followers(data.get('followers')) if data.get('followers') else None
-        self.images: Optional[List[Optional[objects.Image]]] = [objects.Image(image_data) for image_data in data.get('images')] if data.get('images') else None
+        self.images: Optional[list[Optional[objects.Image]]] = [objects.Image(image_data) for image_data in data.get('images')] if data.get('images') else None
         self.has_premium: Optional[bool] = data.get('product') == 'premium' if data.get('product') else None
 
     def __repr__(self) -> str:

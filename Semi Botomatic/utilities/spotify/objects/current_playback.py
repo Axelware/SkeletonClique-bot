@@ -1,4 +1,4 @@
-from typing import Dict, Literal, Optional
+from typing import Literal, Optional
 
 from utilities.spotify import objects
 
@@ -10,7 +10,7 @@ class Context:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.external_urls: Dict[Optional[str], Optional[str]] = data.get('external_urls', {})
+        self.external_urls: dict[Optional[str], Optional[str]] = data.get('external_urls', {})
         self.href: str = data.get('href')
         self.type: str = data.get('type')
         self.uri: str = data.get('uri')

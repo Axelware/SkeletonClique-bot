@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import discord
 from discord.ext import commands
@@ -18,7 +18,7 @@ class HelpCommand(commands.HelpCommand):
                     '**[argument...]** means you can have multiple arguments.'
         })
 
-    def get_cog_commands(self, *, cog: commands.Cog) -> Optional[List[Union[commands.Command, commands.Group]]]:
+    def get_cog_commands(self, *, cog: commands.Cog) -> Optional[list[Union[commands.Command, commands.Group]]]:
 
         filtered_commands = []
 
@@ -30,7 +30,7 @@ class HelpCommand(commands.HelpCommand):
         return filtered_commands
 
     @staticmethod
-    def format_commands(*, unformatted_command: List[commands.Command]) -> List[str]:
+    def format_commands(*, unformatted_command: list[commands.Command]) -> list[str]:
 
         formatted_commands = []
 

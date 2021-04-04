@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 
 class BaseObject:
@@ -29,7 +29,7 @@ class PagingObject:
         self.data = data
 
         self.href: str = data.get('href')
-        self.items: List[Dict] = data.get('items')
+        self.items: list[dict] = data.get('items')
         self.limit: int = data.get('limit')
         self.next: Optional[str] = data.get('next')
         self.offset: int = data.get('offset')
