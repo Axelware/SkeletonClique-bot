@@ -6,14 +6,17 @@ from typing import Optional, Union
 import aiohttp
 import asyncpg
 import discord
+import ksoftapi
 import mystbin
 import psutil
+import slate
+import spotify
 from discord.ext import commands
 
 import config
 from cogs.web import main
 from managers import guild_manager, reminder_manager, tag_manager, todo_manager, user_manager
-from utilities import context, help, spotify
+from utilities import context, help
 
 __log__ = logging.getLogger(__name__)
 
@@ -45,22 +48,25 @@ class SemiBotomatic(commands.AutoShardedBot):
         self.first_ready: bool = True
 
         self.db: Optional[asyncpg.Pool] = None
-        self.mystbin: mystbin.Client = mystbin.Client()
-        self.spotify: Optional[spotify.client.Client] = None
         self.semi_botomatic_web: Optional[main.SemiBotomaticWeb] = None
+
+        self.mystbin: mystbin.Client = mystbin.Client()
+        self.ksoft: Optional[ksoftapi.Client] = ksoftapi.Client(config.KSOFT_TOKEN)
+        self.slate: Optional[slate.Client] = slate.Client(bot=self, session=self.session)
+        self.spotify: Optional[spotify.Client] = spotify.Client(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
+        self.spotify_http: Optional[spotify.HTTPClient] = spotify.HTTPClient(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
 
         self.user_manager: user_manager.UserManager = user_manager.UserManager(bot=self)
         self.guild_manager: guild_manager.GuildManager = guild_manager.GuildManager(bot=self)
-        self.tag_manager: tag_manager.TagManager = tag_manager.TagManager(bot=self)
         self.reminder_manager: reminder_manager.ReminderManager = reminder_manager.ReminderManager(bot=self)
+        self.tag_manager: tag_manager.TagManager = tag_manager.TagManager(bot=self)
         self.todo_manager: todo_manager.TodoManager = todo_manager.TodoManager(bot=self)
-
 
     async def get_context(self, message: discord.Message, *, cls=context.Context) -> context.Context:
         return await super().get_context(message, cls=cls)
 
-    async def is_owner(self, person: Union[discord.User, discord.Member]) -> bool:
-        return person.id in config.OWNER_IDS
+    async def is_owner(self, user: Union[discord.User, discord.Member]) -> bool:
+        return user.id in config.OWNER_IDS
 
     async def start(self, *args, **kwargs) -> None:
 
@@ -73,8 +79,10 @@ class SemiBotomatic(commands.AutoShardedBot):
             raise ConnectionError
         else:
             __log__.info('[POSTGRESQL] Successful connection.')
-            print(f'\n[POSTGRESQL] Successful connection.\n')
+            print('\n[POSTGRESQL] Successful connection.')
             self.db = db
+
+        print('')
 
         for extension in config.EXTENSIONS:
             try:
@@ -83,31 +91,37 @@ class SemiBotomatic(commands.AutoShardedBot):
                 print(f'[EXTENSIONS] Loaded - {extension}')
             except commands.ExtensionNotFound:
                 __log__.warning(f'[EXTENSIONS] Extension not found - {extension}')
-                print(f'[EXTENSIONS] Extension not found - {extension}')
+                print(f'\n[EXTENSIONS] Extension not found - {extension}\n')
             except commands.NoEntryPointError:
                 __log__.warning(f'[EXTENSIONS] No entry point - {extension}')
-                print(f'[EXTENSIONS] No entry point - {extension}')
+                print(f'\n[EXTENSIONS] No entry point - {extension}\n')
             except commands.ExtensionFailed as error:
                 __log__.warning(f'[EXTENSIONS] Failed - {extension} - Reason: {error}')
-                print(f'[EXTENSIONS] Failed - {extension} - Reason: {error}')
+                print(f'\n[EXTENSIONS] Failed - {extension} - Reason: {error}\n')
+
+        print('')
 
         await super().start(*args, **kwargs)
 
     async def close(self) -> None:
 
+        __log__.info('[BOT] Closing aiohttp client sessions.')
+        print('\n[CS] Closing aiohttp client sessions.')
+        await self.mystbin.close()
+        await self.ksoft.close()
+        await self.session.close()
+        await self.spotify.close()
+        await self.spotify_http.close()
+
         __log__.info('[BOT] Closing bot down.')
-        print('\n[BOT] Closing bot down.')
+        print('[BOT] Closing bot down.')
 
         __log__.info('[BOT] Closing database connection.')
         print('[DB] Closing database connection.')
         await self.db.close()
 
-        __log__.info('[BOT] Closing aiohttp client session.')
-        print('[CS] Closing aiohttp client session.')
-        await self.session.close()
-
         __log__.info('[BOT] Bot has shutdown.')
-        print('Bye bye!')
+        print('\nBye bye!')
         await super().close()
 
     #

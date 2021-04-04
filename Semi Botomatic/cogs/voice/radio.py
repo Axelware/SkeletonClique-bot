@@ -6,15 +6,12 @@ from discord.ext import commands
 import config
 from bot import SemiBotomatic
 from utilities import context, exceptions
-from utilities.spotify import client
 
 
 class Radio(commands.Cog):
 
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
-
-        self.bot.spotify = client.Client(bot=self.bot)
 
     @commands.command(name='authorise', aliases=['auth'])
     async def authorise(self, ctx: context.Context) -> None:
