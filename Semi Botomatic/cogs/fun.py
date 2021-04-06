@@ -15,9 +15,9 @@ class Fun(commands.Cog):
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
-        self.RESPONSES = ['Yeah!', 'Hell yeah!!', 'I think so?', 'Maybe, not too sure', 'Totally', 'Of course', 'Yes', 'Perhaps...',
+        self.RESPONSES = ['Yeah!', 'Hell yeah!!', 'I think so?', 'Maybe, not sure', 'Totally', 'Of course', 'Yes', 'Perhaps...',
                           'If you believe in yourself, you can surely do it.', 'Nah', 'Nope', 'Definitely not', 'WHAT, are you insane???',
-                          'Sorry I had you muted, can you ask me again?', 'I didn\'t quite catch that, can you repeat']
+                          'Sorry I had you muted, can you ask me again?', 'I didn’t quite catch that, can you repeat']
 
         self.RATINGS = [
             '-100, I don\'t ever want to hear that name again!',
@@ -26,7 +26,7 @@ class Fun(commands.Cog):
             '1.',
             '2, who even is that?? never heard of them...',
             '3.',
-            '4, they\'re ok, i guess :rolling_eyes:',
+            '4, they\'re ok, I guess :rolling_eyes:',
             '5.',
             '6.',
             '7.',
@@ -49,7 +49,7 @@ class Fun(commands.Cog):
         """
 
         if not question:
-            raise exceptions.ArgumentError('c\'mon kid, you gotta ask me something, how can i predict something from nothing?')
+            raise exceptions.ArgumentError('c\'mon kid, you have to ask me something, how can I predict something from nothing?')
 
         question = ''.join(str(question).split('\n'))
 
@@ -108,7 +108,7 @@ class Fun(commands.Cog):
         counter = collections.Counter(random.choice(list(map(str, choices))) for _ in range(times))
         entries = [f'{item[:15] + (item[15:] and ".."):17} | {count / times:.2%}' for item, count in counter.most_common()]
         await ctx.paginate_embed(entries=entries, per_page=10, codeblock=True, header='Choice            | Percentage\n')
-        
+
     @commands.command(name='book')
     async def book(self, ctx: context.Context, *, language: str = None) -> None:
 

@@ -30,7 +30,7 @@ class Settings(commands.Cog):
         """
         Manage this servers embed size settings.
 
-        Please note that to view the the current size, no permissions are needed, however to change it you require the `manage_guild` permission.
+        Please note that to view the current size, no permissions are needed, however to change it you require the `manage_guild` permission.
 
         `operation`: The operation to perform, `set` to change it or `reset` to revert it to the default. If not provided the current size will be displayed.
         `size`: The size to set embeds too. Can be `large`, `medium` or `small`.

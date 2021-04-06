@@ -18,7 +18,7 @@ class Birthdays(commands.Cog):
         """
         Display the birthday of you, or the member provided.
 
-        `person`: The person to display the birthday of. Can be their name, id or mention. If this argument is not passed the command will display your birthday.
+        `person`: The person to display the birthday of. Can be their name, id or mention, If this argument is not passed the command will display your birthday.
         """
 
         if person is None:

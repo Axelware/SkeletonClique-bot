@@ -204,7 +204,7 @@ class Client:
         paging = objects.PagingObject(paging_response)
         albums = [objects.SimpleAlbum(data) for data in paging.items]
 
-        if paging.total <= 50:  # We already have the first 50 so we can just return the albums we have so far.
+        if paging.total <= 50:  # We already have the first 50, so we can just return the albums we have so far.
             return albums
 
         for _ in range(1, math.ceil(paging.total / 50)):
@@ -279,7 +279,7 @@ class Client:
         paging = objects.PagingObject(paging_response)
         tracks = [objects.SimpleTrack(data) for data in paging.items]
 
-        if paging.total <= 50:  # We already have the first 50 so we can just return the tracks we have so far.
+        if paging.total <= 50:  # We already have the first 50, so we can just return the tracks we have so far.
             return tracks
 
         for _ in range(1, math.ceil(paging.total / 50)):

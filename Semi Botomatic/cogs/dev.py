@@ -79,7 +79,7 @@ class Dev(commands.Cog):
     @dev.command(name='socketstats', aliases=['ss'], hidden=True)
     async def dev_socket_stats(self, ctx: context.Context) -> None:
         """
-        Displays a list of socket event counts since startup.
+        Displays a list of socket event counts since bot startup.
         """
 
         event_stats = collections.OrderedDict(sorted(self.bot.socket_stats.items(), key=lambda kv: kv[1], reverse=True))
