@@ -490,9 +490,10 @@ class Music(commands.Cog):
 
         if query == 'spotify':
 
-            query = 'player'
             if (spotify_activity := discord.utils.find(lambda activity: isinstance(activity, discord.Spotify), ctx.author.activities)) is not None:
                 query = f'{spotify_activity.title} - {spotify_activity.artist}'
+            else:
+                raise exceptions.VoiceError('You do not have an active spotify status to get the current track from.')
 
         elif query == 'player':
 
