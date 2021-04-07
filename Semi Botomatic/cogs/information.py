@@ -208,6 +208,7 @@ class Information(commands.Cog):
         """
 
         counts = {role.name.title(): len(role.members) for role in ctx.guild.roles}
+
         counts['Bots (Actual)'] = len([member for member in ctx.guild.members if member.bot])
 
         roles = [f'{role_name[:20] + (role_name[20:] and ".."):23} | {role_count}' for role_name, role_count in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)]
@@ -228,15 +229,15 @@ class Information(commands.Cog):
         categories = [category for category in guild.channels if isinstance(category, discord.CategoryChannel)]
 
         entries = [
-            f'{await converters.ChannelEmojiConverter().convert(ctx=ctx, argument=channel)}{channel}'
+            f'{utils.channel_emoji(channel=channel)}{channel}'
             for channel in sorted(channels, key=lambda channel: channel.position)
         ]
 
-        space = '\u200b ' * 4
+        space = '\u200b ' * 5
         for category in sorted(categories, key=lambda category: category.position):
             entries.append(f'<:category:738960756233601097> **{category}**')
             for channel in category.channels:
-                entries.append(f'{space}{await converters.ChannelEmojiConverter().convert(ctx=ctx, argument=channel)}{channel}')
+                entries.append(f'{space}{utils.channel_emoji(channel=channel)}{channel}')
 
         await ctx.paginate_embed(entries=entries, per_page=30, title=f'`{guild.name}`\'s channels.')
 

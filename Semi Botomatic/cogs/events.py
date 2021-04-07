@@ -156,14 +156,14 @@ class Events(commands.Cog):
 
         embed = discord.Embed(colour=ctx.colour, description=f'{ctx.message.content}')
         embed.add_field(name='Info:', value=info)
-        await self.bot.ERROR_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+        await self.bot.ERROR_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
         if len(error_traceback) < 2000:
             error_traceback = f'```py\n{error_traceback}\n```'
         else:
             error_traceback = await utils.safe_text(mystbin_client=self.bot.mystbin, text=error_traceback)
 
-        await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+        await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
     #
 
@@ -194,7 +194,7 @@ class Events(commands.Cog):
         embed = discord.Embed(colour=ctx.colour, description=f'{message.content}')
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info)
-        await self.bot.DMS_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+        await self.bot.DMS_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
@@ -217,7 +217,7 @@ class Events(commands.Cog):
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {before.id}')
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message, bulk: bool = False) -> None:
@@ -234,14 +234,14 @@ class Events(commands.Cog):
         info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {message.id}')
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
         if message.attachments:
 
             for attachment in message.attachments:
                 try:
                     await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`:', file=await attachment.to_file(use_cached=True),
-                                                   username=f'{ctx.author}', avatar_url=utils.person_avatar(person=ctx.author))
+                                                   username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
                 except (discord.HTTPException, discord.Forbidden, discord.NotFound):
                     continue
 
@@ -270,7 +270,7 @@ class Events(commands.Cog):
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
 
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.avatar(person=member))
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:
@@ -291,7 +291,7 @@ class Events(commands.Cog):
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
 
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.person_avatar(person=member))
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.avatar(person=member))
 
 
 def setup(bot: SemiBotomatic) -> None:

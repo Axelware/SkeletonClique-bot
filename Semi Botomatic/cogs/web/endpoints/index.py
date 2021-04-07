@@ -2,6 +2,7 @@ import aiohttp.web
 import aiohttp_jinja2
 
 import config
+from utilities import utils
 
 
 # noinspection PyUnusedLocal
@@ -20,7 +21,7 @@ async def staff_get(request: aiohttp.web.Request):
     for owner_id in config.OWNER_IDS:
 
         person = guild.get_member(owner_id)
-        avatar = person.avatar_url_as(format='gif' if person.is_avatar_animated() else 'png')
+        avatar = utils.avatar(person=person)
         data = {'name': str(person), 'image': avatar}
 
         if person.top_role.id == config.ADMIN_ROLE_ID:

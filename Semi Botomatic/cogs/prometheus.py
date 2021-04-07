@@ -63,13 +63,12 @@ class Prometheus(commands.Cog):
             return
         self.ready = True
 
-        self.gauges.labels(count='members').set(sum(len(guild.members) for guild in self.bot.guilds))
+        self.gauges.labels(count='members').set(len(self.bot.get_all_members()))
         self.gauges.labels(count='users').set(len(self.bot.users))
         self.gauges.labels(count='guilds').set(len(self.bot.guilds))
 
         for guild in self.bot.guilds:
             statuses = collections.Counter([member.status for member in guild.members])
-
             self.guild_stats.labels(id=str(guild.id), count='online').set(statuses[discord.Status.online])
             self.guild_stats.labels(id=str(guild.id), count='offline').set(statuses[discord.Status.offline])
             self.guild_stats.labels(id=str(guild.id), count='idle').set(statuses[discord.Status.idle])
