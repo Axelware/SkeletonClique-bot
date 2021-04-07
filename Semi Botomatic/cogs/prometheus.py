@@ -63,7 +63,7 @@ class Prometheus(commands.Cog):
             return
         self.ready = True
 
-        self.gauges.labels(count='members').set(len(self.bot.get_all_members()))
+        self.gauges.labels(count='members').set(len(list(self.bot.get_all_members())))
         self.gauges.labels(count='users').set(len(self.bot.users))
         self.gauges.labels(count='guilds').set(len(self.bot.guilds))
 
