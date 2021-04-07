@@ -23,8 +23,6 @@ class GuildManager:
         __log__.info(f'[GUILD MANAGER] Loaded guild configs. [{len(configs)} guilds]')
         print(f'[GUILD MANAGER] Loaded guild configs. [{len(configs)} guilds]')
 
-        await self.bot.tag_manager.load()
-
     #
 
     async def create_config(self, *, guild_id: int) -> objects.GuildConfig:
