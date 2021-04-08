@@ -752,5 +752,5 @@ class Music(commands.Cog):
         await ctx.send(f'Moved `{track.title}` from position `{entry_1}` to position `{entry_2}`.')
 
 
-def setup(bot: SemiBotomatic):
+def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Music(bot=bot))

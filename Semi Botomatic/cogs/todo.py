@@ -7,7 +7,7 @@ from utilities import context, exceptions
 
 class Todo(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic):
+    def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
     @commands.group(name='todo', aliases=['todos'], invoke_without_command=True)
@@ -126,5 +126,5 @@ class Todo(commands.Cog):
         await ctx.send(f'Edited todo with id `{todo_id}`.')
 
 
-def setup(bot: SemiBotomatic):
-    bot.add_cog(Todo(bot))
+def setup(bot: SemiBotomatic) -> None:
+    bot.add_cog(Todo(bot=bot))

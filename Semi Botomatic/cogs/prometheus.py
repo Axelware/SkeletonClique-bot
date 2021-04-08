@@ -157,4 +157,4 @@ class Prometheus(commands.Cog):
 
 
 def setup(bot: SemiBotomatic) -> None:
-    bot.add_cog(cog=Prometheus(bot))
+    bot.add_cog(cog=Prometheus(bot=bot))

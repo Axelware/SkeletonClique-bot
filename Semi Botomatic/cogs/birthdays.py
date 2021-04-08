@@ -184,5 +184,5 @@ class Birthdays(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: SemiBotomatic):
+def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Birthdays(bot=bot))

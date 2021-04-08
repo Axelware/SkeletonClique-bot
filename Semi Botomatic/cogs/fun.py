@@ -134,5 +134,5 @@ class Fun(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: SemiBotomatic):
+def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Fun(bot=bot))

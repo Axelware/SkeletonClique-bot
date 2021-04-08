@@ -54,5 +54,5 @@ class Radio(commands.Cog):
 
 
 
-def setup(bot: SemiBotomatic):
+def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Radio(bot=bot))

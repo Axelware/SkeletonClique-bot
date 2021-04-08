@@ -57,5 +57,5 @@ class Settings(commands.Cog):
             await ctx.send('Set this servers embed size to `Large`.')
 
 
-def setup(bot: SemiBotomatic):
-    bot.add_cog(Settings(bot))
+def setup(bot: SemiBotomatic) -> None:
+    bot.add_cog(Settings(bot=bot))

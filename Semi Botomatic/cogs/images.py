@@ -27,7 +27,7 @@ commands.Command.transform = _transform
 
 class Images(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic):
+    def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -657,5 +657,5 @@ class Images(commands.Cog):
             await ctx.reply(embed=embed)
 
 
-def setup(bot: SemiBotomatic):
-    bot.add_cog(Images(bot))
+def setup(bot: SemiBotomatic) -> None:
+    bot.add_cog(Images(bot=bot))
