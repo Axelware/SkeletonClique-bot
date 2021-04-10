@@ -7,8 +7,6 @@ import os
 import pathlib
 import random
 from typing import TYPE_CHECKING, Union
-import colorsys
-
 
 import discord
 import pendulum
