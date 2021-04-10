@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import random
 import sys
 import traceback
 from typing import Any, Optional
@@ -78,6 +79,16 @@ class Events(commands.Cog):
 
             commands.DisabledCommand:               'The command `{command}` has been disabled.',
         }
+
+        self.WELCOME_MESSAGES = [
+            'Welcome to trench {user}! Enjoy your stay.',
+            'Dema don\'t control {user}. Welcome to the server!',
+            'it looks like {user} might be one of us, welcome to **The Skeleton Clique!**',
+            '{user} just wants to say hello. Welcome to **The Skeleton Clique!**',
+            '{user} is waking up in Slowtown. Welcome to the server!',
+            'Please welcome {user} to **The Skeleton Clique!**',
+            'Don\'t shy away! {user}, welcome to **The Skeleton Clique!**'
+        ]
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: context.Context, error: Any) -> Optional[discord.Message]:
@@ -271,6 +282,13 @@ class Events(commands.Cog):
         embed.set_footer(text=f'ID: {member.id}')
 
         await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.avatar(person=member))
+
+        channel = member.guild.get_channel(config.GENERAL_CHAT_ID)
+        message = random.choice(self.WELCOME_MESSAGES).format(user=member.mention)
+        await channel.send(message)
+
+        role = member.guild.get_role(config.CLIQUE_ROLE_ID)
+        await member.add_roles(role)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:

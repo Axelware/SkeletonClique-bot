@@ -8,18 +8,26 @@ EXTENSIONS = [
     'cogs.voice.music',
     'cogs.voice.radio',
     'cogs.background',
+    'cogs.prometheus',
+    'cogs.birthdays',
+    'cogs.settings',
     'cogs.events',
+    'cogs.images',
     'cogs.tags',
     'cogs.time',
+    'cogs.todo',
     'cogs.fun',
     'cogs.dev',
     'jishaku',
 ]
 OWNER_IDS = {
-    0, 1, 2, 3, 4
+    709183570198921299, 434820920574738433, 406643416789942298, 411132793490374656, 360594708327825411, 405057609213673473, 238356301439041536, 494141434568376351,
+    826593785617711134
 }
 
+
 # Tokens
+AXEL_WEB_TOKEN = ''
 KSOFT_TOKEN = ''
 SPOTIFY_CLIENT_ID = ''
 SPOTIFY_CLIENT_SECRET = ''
@@ -34,7 +42,7 @@ POSTGRESQL = {
 }
 REDIS = {
     'host':     '',
-    'port':     0,
+    'port':     00000,
     'password': '',
     'db':       0,
 }
@@ -59,17 +67,22 @@ WEB_PORT = 8080
 WEB_URL = f'{WEB_ADDRESS}:{WEB_PORT}'
 SPOTIFY_CALLBACK_URI = 'http://127.0.0.1'
 
+
 # Custom values
-COLOUR = 0x4e5122
+COLOUR = 0x4E5122
 ZWSP = '\u200b'
 NL = '\n'
 
+
 # ID's
-SKELETON_CLIQUE_GUILD_ID = 0
-ALESS_LAND_GUILD_ID = 0
-NITRO_BOOSTER_ROLE_ID = 0
-FAIRY_LOCALS_ROLE_ID = 0
-STAFF_ROLE_ID = 0
+SKELETON_CLIQUE_GUILD_ID = 470584033668104212
+ALESS_LAND_GUILD_ID = 598911246087094272
+NITRO_BOOSTER_ROLE_ID = 585552444969320454
+FAIRY_LOCALS_ROLE_ID = 722086216228667402
+STAFF_ROLE_ID = 687683937551777806
+BOT_DEVELOPER_ROLE_ID = 781891316677345320
+MODERATOR_ROLE_ID = 475649074037522434
+ADMIN_ROLE_ID = 471044846635974656
 
 
 # Webhooks
@@ -89,7 +102,8 @@ CHANNEL_EMOJIS = {
     'news_locked':  '<:news_locked:739399497062416435>',
     'voice':        '<:voice:739399497221931058>',
     'voice_locked': '<:voice_locked:739399496924135476>',
-    'category':     '<:category:738960756233601097>'
+    'category':     '<:category:738960756233601097>',
+    'unknown':      '<:question:>',
 }
 BADGE_EMOJIS = {
     'staff':                  '<:staff:738961032109752441>',

@@ -71,7 +71,7 @@ class Client:
             if isinstance(auth_token, int) and (auth_token := self.bot.get_user(auth_token)) is None:
                 raise exceptions.SpotifyException('User with provided ID was not found.')
 
-            if (refresh_token := self.bot.user_manager.get_config(user_id=auth_token.id).spotify_refresh_token) is None:
+            if (refresh_token := self.bot.user_manager.get_config(auth_token.id).spotify_refresh_token) is None:
                 raise exceptions.SpotifyException(f'User with ID \'{auth_token.id}\' has not linked their spotify account.')
 
             auth_token = await objects.UserAuthToken.create_from_refresh_token(client=self, refresh_token=refresh_token)

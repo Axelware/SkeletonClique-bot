@@ -38,7 +38,7 @@ class Radio(commands.Cog):
         except discord.Forbidden:
             raise exceptions.VoiceError('I am unable to send direct messages to you, please enable them so that I can DM you your spotify authorisation link.')
 
-    @commands.group(name='radio', aliases=['r'], invoke_without_command=True)
+    @commands.group(name='radio', invoke_without_command=True)
     async def radio(self, ctx: context.Context) -> None:
         await ctx.send('hi yes radio time :pog:')
 

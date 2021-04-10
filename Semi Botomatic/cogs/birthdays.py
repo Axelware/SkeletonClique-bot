@@ -24,7 +24,7 @@ class Birthdays(commands.Cog):
         if person is None:
             person = ctx.author
 
-        user_config = self.bot.user_manager.get_config(user_id=person.id)
+        user_config = self.bot.user_manager.get_config(person.id)
 
         if user_config.birthday == self.default_birthday:
             raise exceptions.ArgumentError(f'`{person}` has not set their birthday.')
@@ -61,7 +61,7 @@ class Birthdays(commands.Cog):
         if result[1] > pendulum.now(tz='UTC').subtract(years=13) or result[1] < pendulum.now(tz='UTC').subtract(years=150):
             raise exceptions.ArgumentError('You must be more than 13 (As per discord TOS) and less than 150 years old.')
 
-        await self.bot.user_manager.set_birthday(user_id=ctx.author.id, birthday=result[1])
+        await self.bot.user_manager.set_birthday(ctx.author.id, birthday=result[1])
         await ctx.send(f'Your birthday has been set to `{utils.format_date(datetime=ctx.user_config.birthday)}`.')
 
     @birthdays.command(name='reset')
@@ -70,7 +70,7 @@ class Birthdays(commands.Cog):
         Reset your birthday.
         """
 
-        await self.bot.user_manager.set_birthday(user_id=ctx.author.id, birthday=pendulum.date(2020, 1, 1))
+        await self.bot.user_manager.set_birthday(ctx.author.id, birthday=pendulum.date(2020, 1, 1))
         await ctx.send('Your birthday was reset.')
 
     @birthdays.command(name='private')
@@ -82,7 +82,7 @@ class Birthdays(commands.Cog):
         if ctx.user_config.birthday_private is True:
             raise exceptions.GeneralError('Your birthday is already private.')
 
-        await self.bot.user_manager.set_birthday(user_id=ctx.author.id, private=True)
+        await self.bot.user_manager.set_birthday(ctx.author.id, private=True)
         await ctx.send('Your birthday is now private.')
 
     @birthdays.command(name='public')
@@ -94,7 +94,7 @@ class Birthdays(commands.Cog):
         if ctx.user_config.birthday_private is False:
             raise exceptions.GeneralError('Your birthday is already public.')
 
-        await self.bot.user_manager.set_birthday(user_id=ctx.author.id, private=False)
+        await self.bot.user_manager.set_birthday(ctx.author.id, private=False)
         await ctx.send('Your birthday is now public.')
 
     @birthdays.command(name='upcoming')

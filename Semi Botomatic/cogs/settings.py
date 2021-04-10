@@ -48,12 +48,12 @@ class Settings(commands.Cog):
             if not size:
                 raise exceptions.ArgumentError('You did not provide a valid size. Available sizes are `large`, `medium` or `small`.')
 
-            await self.bot.guild_manager.set_embed_size(guild_id=ctx.guild.id, embed_size=getattr(enums.EmbedSize, size.upper()))
+            await self.bot.guild_manager.set_embed_size(ctx.guild.id, embed_size=getattr(enums.EmbedSize, size.upper()))
             await ctx.send(f'Set this servers embed size to `{size.title()}`.')
 
         elif operation == 'reset':
 
-            await self.bot.guild_manager.set_embed_size(guild_id=ctx.guild.id)
+            await self.bot.guild_manager.set_embed_size(ctx.guild.id)
             await ctx.send('Set this servers embed size to `Large`.')
 
 

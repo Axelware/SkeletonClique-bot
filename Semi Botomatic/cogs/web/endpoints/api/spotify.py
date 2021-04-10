@@ -45,7 +45,7 @@ async def api_spotify_get(request: aiohttp.web.Request):
             if (error := data.get('error')) is not None:
                 raise exceptions.AuthentificationError(f'Error while requesting user access/refresh tokens: {error}')
 
-        await bot.user_manager.set_spotify_token(user_id=user.id, token=data.get('refresh_token'))
+        await bot.user_manager.set_spotify_token(user.id, token=data.get('refresh_token'))
 
         bot.spotify.user_auth_tokens[user.id] = objects.tokens.UserAuthToken(**data)
         del bot.spotify.user_auth_states[state]

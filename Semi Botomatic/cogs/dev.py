@@ -130,11 +130,11 @@ class Dev(commands.Cog):
         if reason == 'No reason':
             reason = f'{user.name} - No reason'
 
-        user_config = self.bot.user_manager.get_config(user_id=user.id)
+        user_config = self.bot.user_manager.get_config(user.id)
         if user_config.blacklisted is True:
             raise exceptions.ArgumentError('That user is already blacklisted.')
 
-        await self.bot.user_manager.set_blacklisted(user_id=user.id, reason=reason)
+        await self.bot.user_manager.set_blacklisted(user.id, reason=reason)
         await ctx.send(f'Blacklisted user `{user.id}` with reason:\n\n`{reason}`')
 
     @dev_blacklist_users.command(name='remove', hidden=True)
@@ -145,11 +145,11 @@ class Dev(commands.Cog):
         `user`: The user to remove from the blacklist.
         """
 
-        user_config = self.bot.user_manager.get_config(user_id=user.id)
+        user_config = self.bot.user_manager.get_config(user.id)
         if user_config.blacklisted is False:
             raise exceptions.ArgumentError('That user is not blacklisted.')
 
-        await self.bot.user_manager.set_blacklisted(user_id=user.id, blacklisted=False)
+        await self.bot.user_manager.set_blacklisted(user.id, blacklisted=False)
         await ctx.send(f'Unblacklisted user `{user.id}`.')
 
 

@@ -1,4 +1,5 @@
 import asyncio
+import math
 from typing import Optional
 
 import pendulum
@@ -7,45 +8,16 @@ from pendulum.tz.timezone import Timezone
 
 from utilities import enums
 
-
-# noinspection PyArgumentList
-class DefaultGuildConfig:
-
-    __slots__ = 'id', 'created_at', 'embed_size'
-
-    def __init__(self) -> None:
-
-        self.id: int = 0
-        self.created_at: DateTime = pendulum.now(tz='UTC')
-
-        self.embed_size: enums.EmbedSize = enums.EmbedSize(0)
-
-    def __repr__(self) -> str:
-        return f'<DefaultGuildConfig id=\'{self.id}\'>'
-
-
-# noinspection PyArgumentList
-class GuildConfig:
-
-    __slots__ = 'id', 'created_at', 'embed_size'
-
-    def __init__(self, data: dict) -> None:
-
-        self.id: int = data.get('id')
-        self.created_at: DateTime = pendulum.instance(data.get('created_at'), tz='UTC')
-
-        self.embed_size = enums.EmbedSize(data.get('embed_size'))
-
-    def __repr__(self) -> str:
-        return f'<GuildConfig id=\'{self.id}\'>'
+__all__ = ['DefaultUserConfig', 'UserConfig', 'DefaultGuildConfig', 'GuildConfig', 'Reminder', 'Todo', 'Tag']
 
 
 class DefaultUserConfig:
 
-    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'reminders', \
-                'todos'
+    __slots__ = 'data', 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'xp', \
+                'coins', 'notifications', 'reminders', 'todos', 'requires_db_update'
 
     def __init__(self) -> None:
+        self.data = None
 
         self.id: int = 0
         self.created_at: DateTime = pendulum.now(tz='UTC')
@@ -61,8 +33,15 @@ class DefaultUserConfig:
 
         self.spotify_refresh_token: Optional[str] = None
 
+        self.xp: int = 0
+        self.coins: int = 0
+
+        self.notifications: Notifications = Notifications(data={})
+
         self.reminders: dict[int, Reminder] = {}
         self.todos: dict[int, Todo] = {}
+
+        self.requires_db_update: set = set()
 
     def __repr__(self) -> str:
         return f'<DefaultUserConfig id=\'{self.id}\'>'
@@ -70,10 +49,11 @@ class DefaultUserConfig:
 
 class UserConfig:
 
-    __slots__ = 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'reminders', \
-                'todos'
+    __slots__ = 'data', 'id', 'created_at', 'timezone', 'timezone_private', 'birthday', 'birthday_private', 'blacklisted', 'blacklisted_reason', 'spotify_refresh_token', 'xp', \
+                'coins', 'notifications', 'reminders', 'todos', 'requires_db_update'
 
     def __init__(self, data: dict) -> None:
+        self.data = data
 
         self.id: int = data.get('id')
         self.created_at: DateTime = pendulum.instance(data.get('created_at'), tz='UTC')
@@ -89,8 +69,15 @@ class UserConfig:
 
         self.spotify_refresh_token: Optional[str] = data.get('spotify_refresh_token')
 
+        self.xp: int = data.get('xp')
+        self.coins: int = data.get('coins')
+
+        self.notifications: Optional[Notifications] = None
+
         self.reminders: dict[int, Reminder] = {}
         self.todos: dict[int, Todo] = {}
+
+        self.requires_db_update: set = set()
 
     def __repr__(self) -> str:
         return f'<UserConfig id=\'{self.id}\'>'
@@ -111,12 +98,53 @@ class UserConfig:
         return now.replace(month=self.birthday.month, day=self.birthday.day + 1, hour=0, minute=0, second=0, microsecond=0) if now < self.birthday.add(years=self.age) else \
             now.replace(month=self.birthday.month, day=self.birthday.day + 1, year=self.birthday.year + self.age + 1, hour=0, minute=0, second=0, microsecond=0)
 
+    @property
+    def level(self) -> int:
+        return math.floor((((self.xp / 100) ** (1.0 / 1.5)) / 3))
+
+    @property
+    def next_level_xp(self) -> int:
+        return round((((((self.level + 1) * 3) ** 1.5) * 100) - self.xp))
+
+
+class DefaultGuildConfig:
+
+    __slots__ = 'data', 'id', 'created_at', 'embed_size'
+
+    def __init__(self) -> None:
+        self.data = None
+
+        self.id: int = 0
+        self.created_at: DateTime = pendulum.now(tz='UTC')
+
+        self.embed_size: enums.EmbedSize = enums.EmbedSize(0)
+
+    def __repr__(self) -> str:
+        return f'<DefaultGuildConfig id=\'{self.id}\'>'
+
+
+class GuildConfig:
+
+    __slots__ = 'data', 'id', 'created_at', 'embed_size'
+
+    def __init__(self, data: dict) -> None:
+        self.data = data
+
+        self.id: int = data.get('id')
+        self.created_at: DateTime = pendulum.instance(data.get('created_at'), tz='UTC')
+
+        self.embed_size = enums.EmbedSize(data.get('embed_size'))
+
+    def __repr__(self) -> str:
+        return f'<GuildConfig id=\'{self.id}\'>'
+
 
 class Reminder:
 
-    __slots__ = 'id', 'user_id', 'created_at', 'datetime', 'content', 'jump_url', 'task'
+    __slots__ = 'data', 'id', 'user_id', 'created_at', 'datetime', 'content', 'jump_url', 'task'
 
     def __init__(self, data: dict) -> None:
+        self.data = data
 
         self.id: int = data.get('id')
         self.user_id: int = data.get('user_id')
@@ -137,9 +165,10 @@ class Reminder:
 
 class Tag:
 
-    __slots__ = 'id', 'user_id', 'guild_id', 'created_at', 'name', 'alias', 'content', 'jump_url'
+    __slots__ = 'data', 'id', 'user_id', 'guild_id', 'created_at', 'name', 'alias', 'content', 'jump_url'
 
     def __init__(self, data: dict) -> None:
+        self.data = data
 
         self.id: int = data.get('id')
         self.user_id: int = data.get('user_id')
@@ -156,9 +185,10 @@ class Tag:
 
 class Todo:
 
-    __slots__ = 'id', 'user_id', 'created_at', 'content', 'jump_url'
+    __slots__ = 'data', 'id', 'user_id', 'created_at', 'content', 'jump_url'
 
     def __init__(self, data: dict) -> None:
+        self.data = data
 
         self.id: int = data.get('id')
         self.user_id: int = data.get('user_id')
@@ -168,3 +198,19 @@ class Todo:
 
     def __repr__(self) -> str:
         return f'<Todo id=\'{self.id}\' user_id=\'{self.user_id}\'>'
+
+
+class Notifications:
+
+    __slots__ = 'data', 'id', 'user_id', 'level_ups'
+
+    def __init__(self, data: dict) -> None:
+        self.data = data
+
+        self.id: int = data.get('id')
+        self.user_id: int = data.get('user_id')
+
+        self.level_ups: bool = data.get('level_ups', True)
+
+    def __repr__(self) -> str:
+        return f'<Notifications id={self.id} user_id={self.user_id} level_ups={self.level_ups}>'

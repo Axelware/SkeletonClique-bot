@@ -389,6 +389,7 @@ async def _upload_image(*, ctx: context.Context, image: io.BytesIO, image_format
     if text:
         embed.set_footer(text=text)
 
+    image.close()
     return embed
 
 
