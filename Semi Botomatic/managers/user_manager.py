@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import contextlib
 import io
 import logging
 import math
 import os
 import pathlib
 import random
-from typing import TYPE_CHECKING, Union
+from typing import Literal, TYPE_CHECKING, Union
 
 import discord
 import pendulum
@@ -41,6 +42,19 @@ class UserManager:
                     pathlib.Path('./resources/SAI/level_cards/2.png'),
                     pathlib.Path('./resources/SAI/level_cards/3.png'),
                     pathlib.Path('./resources/SAI/level_cards/4.png'),
+                    pathlib.Path('./resources/SAI/level_cards/5.png'),
+                    pathlib.Path('./resources/SAI/level_cards/6.png'),
+                    pathlib.Path('./resources/SAI/level_cards/7.png'),
+                    pathlib.Path('./resources/SAI/level_cards/8.png'),
+                    pathlib.Path('./resources/SAI/level_cards/9.png'),
+                ],
+                'leaderboard': [
+                    pathlib.Path('./resources/SAI/leaderboard/1.png'),
+                    pathlib.Path('./resources/SAI/leaderboard/2.png'),
+                    pathlib.Path('./resources/SAI/leaderboard/3.png'),
+                    pathlib.Path('./resources/SAI/leaderboard/4.png'),
+                    pathlib.Path('./resources/SAI/leaderboard/5.png'),
+                    pathlib.Path('./resources/SAI/leaderboard/6.png'),
                 ]
             }
         }
@@ -208,81 +222,84 @@ class UserManager:
 
     # Rankings
 
-    def rank(self, user_id: int) -> Union[str, int]:
-
-        configs = dict(sorted(self.configs.items(), key=lambda kv: kv[1].xp, reverse=True))
-
-        try:
-            return list(configs.keys()).index(user_id) + 1
-        except ValueError:
-            return 'Unranked'
-
-    # Timecard images
-
-    async def create_timecard(self, *, guild_id: int) -> discord.File:
+    def rank(self, user_id: int, *, guild_id: int = config.SKELETON_CLIQUE_GUILD_ID) -> Union[int, Literal['Unranked']]:
 
         guild = self.bot.get_guild(guild_id)
-        user_configs = sorted(self.configs.items(), key=lambda kv: kv[1].time.offset_hours)
 
-        user_timezones = {}
+        with contextlib.suppress(ValueError):
+            return list(dict(filter(
+                    lambda kv: guild.get_member(kv[0]) is not None,
+                    sorted(self.configs.items(), key=lambda kv: kv[1].xp, reverse=True)
+            )).keys()).index(user_id) + 1
 
-        for user_id, user_config in user_configs:
+        return 'Unranked'
 
-            if not (member := guild.get_member(user_id)):
-                continue
-            if user_config.timezone_private or user_config.timezone == pendulum.timezone('UTC'):
-                continue
+    def leaderboard(self, lb_type: Literal['xp', 'coins'] = 'xp', *, guild_id: int = config.SKELETON_CLIQUE_GUILD_ID) -> dict[int, objects.UserConfig]:
 
-            avatar_bytes = io.BytesIO(await member.avatar_url_as(format='png', size=256).read())
-            time_format = user_config.time.format('HH:mm (ZZ)')
+        guild = self.bot.get_guild(guild_id)
+        return dict(filter(
+                lambda kv: guild.get_member is not None and getattr(kv[1], lb_type) != 0,
+                sorted(self.configs.items(), key=lambda kv: getattr(kv[1], lb_type), reverse=True)
+        ))
 
-            if (users := user_timezones.get(time_format)) is None:
-                user_timezones[time_format] = [avatar_bytes]
-                continue
+    # Timecard image
 
-            if len(users) > 36:
-                break
-            user_timezones[time_format].append(avatar_bytes)
+    async def create_timecard(self, *, guild_id: int = config.SKELETON_CLIQUE_GUILD_ID) -> discord.File:
 
-        if not user_timezones:
+        guild = self.bot.get_guild(guild_id)
+
+        user_configs = dict(filter(
+                lambda kv: guild.get_member(kv[0]) is not None and not kv[1].timezone_private and not kv[1].timezone == pendulum.timezone('UTC'),
+                sorted(self.configs.items(), key=lambda kv: kv[1].time.offset_hours)
+        ))
+        timezone_avatars = {}
+
+        for user_config in user_configs.values():
+
+            avatar_bytes = io.BytesIO(await guild.get_member(user_config.id).avatar_url_as(format='png', size=256).read())
+            timezone = user_config.time.format('HH:mm (ZZ)')
+
+            if not (users := timezone_avatars.get(timezone), []):
+                if len(users) > 36:
+                    break
+                timezone_avatars[timezone].append(avatar_bytes)
+            else:
+                timezone_avatars[timezone] = [avatar_bytes]
+
+        if not timezone_avatars:
             raise exceptions.ArgumentError('There are no users with timezones set in this server.')
 
-        buffer = await self.bot.loop.run_in_executor(None, self.create_timecard_image, user_timezones)
+        buffer = await self.bot.loop.run_in_executor(None, self.create_timecard_image, timezone_avatars)
         file = discord.File(fp=buffer, filename='level.png')
 
         buffer.close()
-        for avatar_bytes_list in user_timezones.values():
-            [avatar_bytes.close() for avatar_bytes in avatar_bytes_list]
+        for avatar_bytes in timezone_avatars.values():
+            [buffer.close() for buffer in avatar_bytes]
 
         return file
 
     def create_timecard_image(self, timezone_users: dict) -> io.BytesIO:
 
         buffer = io.BytesIO()
+        width_x, height_y = (1600 * (len(timezone_users) if len(timezone_users) < 5 else 5)) + 100, (1800 * math.ceil(len(timezone_users) / 5)) + 100
 
-        width_x = (1600 * (len(timezone_users.keys()) if len(timezone_users.keys()) < 5 else 5)) + 100
-        height_y = (1800 * math.ceil(len(timezone_users.keys()) / 5)) + 100
+        with Image.new(mode='RGBA', size=(width_x, height_y), color='#F1C30F') as image:
 
-        with Image.new('RGBA', (width_x, height_y), color='#F1C30F') as image:
+            draw = ImageDraw.Draw(im=image)
+            font = ImageFont.truetype(font=self.ARIAL_FONT, size=120)
 
-            draw = ImageDraw.Draw(image)
-            font = ImageFont.truetype(self.ARIAL_FONT, 120)
-
-            x = 100
-            y = 100
+            x, y = 100, 100
 
             for timezone, avatars in timezone_users.items():
 
-                draw.text((x, y), timezone, font=font, fill='#1B1A1C')
+                draw.text(xy=(x, y), text=timezone, font=font, fill='#1B1A1C')
+                user_x, user_y = x, y + 200
 
-                user_x = x
-                user_y = y + 200
+                for avatar_bytes in avatars:
 
-                for avatar in avatars[:36]:
-
-                    with Image.open(avatar) as avatar_image:
-                        avatar_image = avatar_image.resize((250, 250))
-                        image.paste(avatar_image, (user_x, user_y), avatar_image.convert('RGBA'))
+                    with Image.open(fp=avatar_bytes) as avatar:
+                        avatar = avatar.resize(size=(250, 250), resample=Image.LANCZOS)
+                        image.paste(im=avatar, box=(user_x, user_y), mask=avatar.convert(mode='RGBA'))
 
                     if user_x < x + 1200:
                         user_x += 250
@@ -296,21 +313,20 @@ class UserManager:
                 else:
                     x += 1600
 
-            image.save(buffer, 'png')
+            image.save(fp=buffer, format='png')
 
         buffer.seek(0)
         return buffer
 
-    # Level images
+    # Level image
 
-    async def create_level_card(self, user_id: int, *, guild_id: int = None) -> discord.File:
+    async def create_level_card(self, user_id: int, *, guild_id: int = config.SKELETON_CLIQUE_GUILD_ID) -> discord.File:
 
-        guild = self.bot.get_guild(guild_id or config.SKELETON_CLIQUE_GUILD_ID)
+        guild = self.bot.get_guild(guild_id)
 
         user = guild.get_member(user_id) if guild else self.bot.get_user(user_id)
-        user_config = self.get_config(user_id)
-
-        avatar_bytes = io.BytesIO(await user.avatar_url_as(format='png', size=256).read())
+        user_config = await self.get_or_create_config(user.id)
+        avatar_bytes = io.BytesIO(await user.avatar_url_as(format='png', size=512).read())
 
         buffer = await self.bot.loop.run_in_executor(None, self.create_level_card_image, user, user_config, avatar_bytes)
         file = discord.File(fp=buffer, filename='level.png')
@@ -320,69 +336,59 @@ class UserManager:
 
         return file
 
-    def create_level_card_image(self, member: Union[discord.Member, discord.User], user_config: objects.UserConfig, avatar_bytes: io.BytesIO) -> io.BytesIO:
+    def create_level_card_image(self, user: Union[discord.User, discord.Member], user_config: objects.UserConfig, avatar_bytes: io.BytesIO) -> io.BytesIO:
 
         buffer = io.BytesIO()
-        card = random.choice(self.IMAGES['SAI']['level_cards'])
+        card_image = random.choice(self.IMAGES['SAI']['level_cards'])
 
-        with Image.open(card) as image:
+        with Image.open(fp=card_image) as image:
 
-            draw = ImageDraw.Draw(image)
+            draw = ImageDraw.Draw(im=image)
 
-            with Image.open(avatar_bytes) as avatar:
+            with Image.open(fp=avatar_bytes) as avatar:
+                avatar = avatar.resize(size=(256, 256), resample=Image.LANCZOS)
+                image.paste(im=avatar, box=(22, 22), mask=avatar.convert('RGBA'))
 
-                avatar = avatar.resize((256, 256), resample=Image.LANCZOS) if avatar.size != (256, 256) else avatar
-                image.paste(avatar, (22, 22), avatar.convert('RGBA'))
-
-                colour = ColorThief(avatar_bytes).get_color(quality=1)
+                colour = ColorThief(file=avatar_bytes).get_color(quality=1)
 
             # Username
 
-            name_text = getattr(member, 'nick', None) or member.name
-            name_fontsize = 56
-            name_font = ImageFont.truetype(self.KABEL_BLACK_FONT, name_fontsize)
-
-            while draw.textsize(name_text, font=name_font) > (690, 45):
-                name_fontsize -= 1
-                name_font = ImageFont.truetype(self.KABEL_BLACK_FONT, name_fontsize)
-
-            draw.text((300, 22 - name_font.getoffset(name_text)[1]), name_text, font=name_font, fill=colour)
+            text = utils.name(person=user)
+            font = utils.find_font_size(text=text, font=self.KABEL_BLACK_FONT, size=56, draw=draw, x_bound=690, y_bound=45)
+            draw.text(xy=(300, 22 - font.getoffset(text)[1]), text=text, font=font, fill=colour)
 
             # Level
 
-            level_text = f'Level: {user_config.level}'
-            level_font = ImageFont.truetype(self.KABEL_BLACK_FONT, 40)
-
-            draw.text((300, 72 - level_font.getoffset(level_text)[1]), level_text, font=level_font, fill='#1F1E1C')
+            text = f'Level: {user_config.level}'
+            font = ImageFont.truetype(font=self.KABEL_BLACK_FONT, size=40)
+            draw.text(xy=(300, 72 - font.getoffset(text)[1]), text=text, font=font, fill='#1F1E1C')
 
             # XP
 
-            xp_text = f'XP: {user_config.xp} / {user_config.xp + user_config.next_level_xp}'
-            xp_font = ImageFont.truetype(self.KABEL_BLACK_FONT, 40)
-
-            draw.text((300, 112 - xp_font.getoffset(xp_text)[1]), xp_text, font=xp_font, fill='#1F1E1C')
+            text = f'XP: {user_config.xp} / {user_config.xp + user_config.next_level_xp}'
+            font = ImageFont.truetype(font=self.KABEL_BLACK_FONT, size=40)
+            draw.text(xy=(300, 112 - font.getoffset(text)[1]), text=text, font=font, fill='#1F1E1C')
 
             # XP BAR
 
             bar_len = 678
             outline = utils.darken_colour(*colour, 0.2)
 
-            draw.rounded_rectangle(((300, 152), (300 + bar_len, 192)), radius=10, outline=outline, fill='#1F1E1C', width=5)
+            draw.rounded_rectangle(xy=((300, 152), (300 + bar_len, 192)), radius=10, outline=outline, fill='#1F1E1C', width=5)
 
             if user_config.xp > 0:
                 filled_len = int(round(bar_len * user_config.xp / float(user_config.xp + user_config.next_level_xp)))
-                draw.rounded_rectangle(((300, 152), (300 + filled_len, 192)), radius=10, outline=outline, fill=colour, width=5)
+                draw.rounded_rectangle(xy=((300, 152), (300 + filled_len, 192)), radius=10, outline=outline, fill=colour, width=5)
 
             # Rank
 
-            rank_text = f'#{self.rank(member.id)}'
-            rank_font = ImageFont.truetype(self.KABEL_BLACK_FONT, 110)
-
-            draw.text((300, 202 - rank_font.getoffset(rank_text)[1]), rank_text, font=rank_font, fill='#1F1E1C')
+            text = f'#{self.rank(user.id)}'
+            font = ImageFont.truetype(self.KABEL_BLACK_FONT, 110)
+            draw.text(xy=(300, 202 - font.getoffset(text)[1]), text=text, font=font, fill='#1F1E1C')
 
             #
 
-            image.save(buffer, 'png')
+            image.save(fp=buffer, format='png')
 
         buffer.seek(0)
         return buffer

@@ -8,6 +8,8 @@ import os
 import pathlib
 from typing import TYPE_CHECKING, Union
 
+import PIL.ImageDraw
+from PIL import ImageFont
 import discord
 import humanize
 import mystbin
@@ -203,3 +205,23 @@ def lighten_colour(r, g, b, factor: float = 0.1) -> tuple[float, float, float]:
     h, l, s = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
     r, g, b = colorsys.hls_to_rgb(h, max(min(l * (1 + factor), 1.0), 0.0), s)
     return int(r * 255), int(g * 255), int(b * 255)
+
+
+def name(person: Union[discord.Member, discord.User], *, guild: discord.Guild = None) -> str:
+
+    if guild and isinstance(person, discord.User):
+        member = guild.get_member(person.id)
+        return member.nick or member.name if isinstance(member, discord.Member) else person.name
+
+    return person.nick or person.name if isinstance(person, discord.Member) else person.name
+
+
+def find_font_size(text: str, font: PIL.ImageFont, size: int, draw: PIL.ImageDraw, x_bound: int, y_bound: int) -> PIL.ImageFont:
+
+    font_sized = ImageFont.truetype(font=font, size=size)
+
+    while draw.textsize(text=text, font=font_sized) > (x_bound, y_bound):
+        size -= 1
+        font_sized = ImageFont.truetype(font=font, size=size)
+
+    return font_sized
