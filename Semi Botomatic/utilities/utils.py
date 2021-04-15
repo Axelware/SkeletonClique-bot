@@ -131,6 +131,10 @@ def avatar(person: Union[discord.User, discord.Member], img_format: str = None) 
     return str(person.avatar_url_as(format=img_format or 'gif' if person.is_avatar_animated() else 'png'))
 
 
+def icon(guild: discord.Guild, img_format: str = None) -> str:
+    return str(guild.icon_url_as(format=img_format or 'gif' if guild.is_icon_animated() else 'png'))
+
+
 def activities(person: discord.Member) -> str:  # sourcery no-metrics
 
     if not person.activities:
@@ -225,3 +229,18 @@ def find_font_size(text: str, font: PIL.ImageFont, size: int, draw: PIL.ImageDra
         font_sized = ImageFont.truetype(font=font, size=size)
 
     return font_sized
+
+
+def voice_region(x: Union[discord.VoiceChannel, discord.StageChannel, discord.Guild]) -> str:
+
+    x = x.rtc_region if isinstance(x, (discord.VoiceChannel, discord.StageChannel)) else x.region
+    if not x:
+        return 'Automatic'
+
+    region = x.name.title().replace('Vip', 'VIP').replace('_', '-').replace('Us-', 'US-')
+    if x == discord.VoiceRegion.hongkong:
+        region = 'Hong Kong'
+    if x == discord.VoiceRegion.southafrica:
+        region = 'South Africa'
+
+    return region
