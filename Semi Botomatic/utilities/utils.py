@@ -215,9 +215,9 @@ def name(person: Union[discord.Member, discord.User], *, guild: discord.Guild = 
 
     if guild and isinstance(person, discord.User):
         member = guild.get_member(person.id)
-        return member.nick or member.name if isinstance(member, discord.Member) else person.name
+        return member.nick or member.name if isinstance(member, discord.Member) else getattr(person, 'name', 'Unknown')
 
-    return person.nick or person.name if isinstance(person, discord.Member) else person.name
+    return person.nick or person.name if isinstance(person, discord.Member) else getattr(person, 'name', 'Unknown')
 
 
 def find_font_size(text: str, font: PIL.ImageFont, size: int, draw: PIL.ImageDraw, x_bound: int, y_bound: int) -> PIL.ImageFont:
