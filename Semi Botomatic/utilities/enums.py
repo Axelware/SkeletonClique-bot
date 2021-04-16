@@ -1,6 +1,12 @@
 import enum
 
 
+class Environment(enum.Enum):
+
+    PROD = 'prod'
+    DEV = 'dev'
+
+
 class Operation(enum.Enum):
 
     SET = 'set'

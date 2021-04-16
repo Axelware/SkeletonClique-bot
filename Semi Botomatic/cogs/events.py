@@ -1,9 +1,10 @@
-import asyncio
+import collections
+import contextlib
 import logging
 import random
 import sys
 import traceback
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import discord
 import pendulum
@@ -13,9 +14,10 @@ from discord.ext.alternatives.literal_converter import BadLiteralArgument
 
 import config
 from bot import SemiBotomatic
-from utilities import context, exceptions, utils
+from utilities import context, enums, exceptions, utils
 
 __log__ = logging.getLogger(__name__)
+PartialMessage = collections.namedtuple('PartialMessage', 'id created_at edited_at guild author channel content jump_url pinned attachments embeds')
 
 
 class Events(commands.Cog):
@@ -89,6 +91,114 @@ class Events(commands.Cog):
             'Please welcome {user} to **The Skeleton Clique!**',
             'Don\'t shy away! {user}, welcome to **The Skeleton Clique!**'
         ]
+
+        self.RED = discord.Colour(0xFF0000)
+        self.ORANGE = discord.Colour(0xFAA61A)
+        self.GREEN = discord.Colour(0x00FF00)
+
+    @staticmethod
+    async def _log_attachments(webhook: discord.Webhook, message: discord.Message) -> None:
+
+        with contextlib.suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            for attachment in message.attachments:
+                await webhook.send(
+                        content=f'Attachment from message with id `{message.id}`:', file=await attachment.to_file(use_cached=True), username=f'{message.author}',
+                        avatar_url=utils.avatar(person=message.author)
+                )
+
+    @staticmethod
+    async def _log_embeds(webhook: discord.Webhook, message: discord.Message) -> None:
+
+        for embed in message.embeds:
+            await webhook.send(
+                    content=f'Embed from message with id `{message.id}`:', embed=embed, username=f'{message.author}',
+                    avatar_url=utils.avatar(person=message.author)
+            )
+
+    #
+
+    async def _log_dm(self, message: discord.Message) -> None:
+
+        content = await utils.safe_text(message.content, mystbin_client=self.bot.mystbin, syntax='txt') if message.content else '*No content*'
+
+        embed = discord.Embed(colour=self.GREEN, title=f'DM from `{message.author}`:', description=content)
+        embed.add_field(
+                name='Info:', value=f'`Channel:` {message.channel} `{message.channel.id}`\n'
+                                    f'`Author:` {message.author} `{message.author.id}`\n'
+                                    f'`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n'
+                                    f'`Jump:` [Click here]({message.jump_url})', inline=False
+        )
+        embed.set_footer(text=f'ID: {message.id}')
+        await self.bot.DMS_LOG.send(embed=embed, username=f'{message.author}', avatar_url=utils.avatar(person=message.author))
+
+        await self._log_attachments(webhook=self.bot.DMS_LOG, message=message)
+        await self._log_embeds(webhook=self.bot.DMS_LOG, message=message)
+
+    async def _log_delete(self, message: discord.Message) -> None:
+
+        webhook = self.bot.COMMON_LOG if message.guild else self.bot.DMS_LOG
+        content = await utils.safe_text(message.content, mystbin_client=self.bot.mystbin, syntax='txt') if message.content else '*No content*'
+
+        embed = discord.Embed(colour=self.RED, title=f'Message deleted in `{message.channel}`:', description=content)
+        embed.add_field(
+                name='Info:', value=f'{f"`Guild:` {message.guild} `{message.guild.id}`{config.NL}" if message.guild else ""}'
+                                    f'`Channel:` {message.channel} `{message.channel.id}`\n'
+                                    f'`Author:` {message.author} `{message.author.id}`\n'
+                                    f'`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n'
+                                    f'`Jump:` [Click here]({message.jump_url})', inline=False
+        )
+        embed.set_footer(text=f'ID: {message.id}')
+        await webhook.send(embed=embed, username=f'{message.author}', avatar_url=utils.avatar(person=message.author))
+
+        await self._log_attachments(webhook=webhook, message=message)
+        await self._log_embeds(webhook=webhook, message=message)
+
+    async def _log_update(self, before: Union[PartialMessage, discord.Message], after: Union[PartialMessage, discord.Message]) -> None:
+
+        webhook = self.bot.COMMON_LOG if after.guild else self.bot.DMS_LOG
+        before_content = await utils.safe_text(before.content, mystbin_client=self.bot.mystbin, syntax='txt') if before.content else '*No content*'
+        after_content = await utils.safe_text(after.content, mystbin_client=self.bot.mystbin, syntax='txt') if after.content else '*No content*'
+
+        embed = discord.Embed(colour=self.ORANGE, title=f'Message edited in `{after.channel}`:')
+        embed.add_field(name='Before:', value=before_content, inline=False)
+        embed.add_field(name='After:', value=after_content, inline=False)
+        embed.add_field(
+                name='Info:', value=f'{f"`Guild:` {after.guild} `{after.guild.id}`{config.NL}" if after.guild else ""}'
+                                    f'`Channel:` {after.channel} `{after.channel.id}`\n'
+                                    f'`Author:` {after.author} `{after.author.id}`\n'
+                                    f'`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n'
+                                    f'`Jump:` [Click here]({after.jump_url})', inline=False
+        )
+        embed.set_footer(text=f'ID: {after.id}')
+        await webhook.send(embed=embed, username=f'{after.author}', avatar_url=utils.avatar(person=after.author))
+
+        await self._log_attachments(webhook=webhook, message=after)
+        await self._log_embeds(webhook=webhook, message=after)
+
+    async def _log_pin(self, message: Union[PartialMessage, discord.Message]) -> None:
+
+        webhook = self.bot.COMMON_LOG if message.guild else self.bot.DMS_LOG
+        content = await utils.safe_text(message.content, mystbin_client=self.bot.mystbin, syntax='txt') if message.content else '*No content*'
+
+        if message.pinned:
+            embed = discord.Embed(colour=self.GREEN, title=f'Message pinned in `{message.channel}`:', description=content)
+        else:
+            embed = discord.Embed(colour=self.RED, title=f'Message unpinned in `{message.channel}`:', description=content)
+
+        embed.add_field(
+                name='Info:', value=f'{f"`Guild:` {message.guild} `{message.guild.id}`{config.NL}" if message.guild else ""}'
+                                    f'`Channel:` {message.channel} `{message.channel.id}`\n'
+                                    f'`Author:` {message.author} `{message.author.id}`\n'
+                                    f'`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}\n'
+                                    f'`Jump:` [Click here]({message.jump_url})', inline=False
+        )
+        embed.set_footer(text=f'ID: {message.id}')
+        await webhook.send(embed=embed, username=f'{message.author}', avatar_url=utils.avatar(person=message.author))
+
+        await self._log_attachments(webhook=webhook, message=message)
+        await self._log_embeds(webhook=webhook, message=message)
+
+    # Error handler
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: context.Context, error: Any) -> Optional[discord.Message]:
@@ -165,7 +275,7 @@ class Events(commands.Cog):
                f'`Author:` {ctx.author} `{ctx.author.id}`\n' \
                f'`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
 
-        embed = discord.Embed(colour=ctx.colour, description=f'{ctx.message.content}')
+        embed = discord.Embed(colour=ctx.colour, description=ctx.message.content)
         embed.add_field(name='Info:', value=info)
         await self.bot.ERROR_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
@@ -174,38 +284,15 @@ class Events(commands.Cog):
         else:
             error_traceback = await utils.safe_text(mystbin_client=self.bot.mystbin, text=error_traceback)
 
-        await self.bot.ERROR_LOG.send(content=f'{error_traceback}', username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
+        await self.bot.ERROR_LOG.send(content=error_traceback, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
-    #
+    # Bot events
 
     @commands.Cog.listener()
     async def on_socket_response(self, message: dict) -> None:
 
         if (event := message.get('t')) is not None:
             self.bot.socket_stats[event] += 1
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-
-        print(f'[BOT] The bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}\n')
-        __log__.info(f'Bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}')
-
-
-    #
-
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message) -> None:
-
-        if config.PREFIX == '!!':
-            return
-        if message.author.bot or message.guild:
-            return
-
-        ctx = await self.bot.get_context(message)
-        embed = discord.Embed(colour=ctx.colour, description=f'{message.content}')
-        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
-        embed.add_field(name='Info:', value=info)
-        await self.bot.DMS_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
@@ -215,65 +302,179 @@ class Events(commands.Cog):
 
         await self.bot.process_commands(after)
 
-        if config.PREFIX == '!!':
-            return
-        if before.author.bot or (before.guild and before.guild.id not in {config.ALESS_LAND_GUILD_ID, config.SKELETON_CLIQUE_GUILD_ID}):
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+
+        print(f'[BOT] The bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}\n')
+        __log__.info(f'Bot is now ready. Name: {self.bot.user} | ID: {self.bot.user.id}')
+
+    # Message logging
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message) -> None:
+
+        if message.guild or message.is_system():
             return
 
-        ctx = await self.bot.get_context(message=before)
+        await self._log_dm(message=message)
 
-        embed = discord.Embed(colour=ctx.colour, title='Message content changed:')
-        embed.add_field(name='Before:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=before.content), inline=False)
-        embed.add_field(name='After:', value=await utils.safe_text(mystbin_client=self.bot.mystbin, text=after.content), inline=False)
-        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
-        embed.add_field(name='Info:', value=info, inline=False)
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message) -> None:
+
+        if message.author.bot or config.ENV == enums.Environment.DEV:
+            return
+
+        await self._log_delete(message=message)
+
+    @commands.Cog.listener()
+    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
+
+        if payload.data['author']['bot'] or config.ENV == enums.Environment.DEV:
+            return
+
+        guild = self.bot.get_guild(payload.guild_id)
+        with contextlib.suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            if not (channel := guild.get_channel(int(payload.data['channel_id'])) if guild else await self.bot.fetch_channel(int(payload.data['channel_id']))):
+                return
+
+        after = PartialMessage(
+                id=payload.data['id'], created_at=discord.utils.snowflake_time(int(payload.data['id'])), edited_at=discord.utils.parse_time(payload.data['edited_timestamp']),
+                guild=getattr(channel, 'guild', None), author=self.bot.get_user(int(payload.data['author']['id'])), channel=channel, content=payload.data['content'],
+                jump_url=f'https://discord.com/channels/{getattr(guild, "id", "@me")}/{channel.id}/{payload.data["id"]}', pinned=payload.data['pinned'],
+                attachments=[discord.Attachment(data=a, state=self.bot._connection) for a in payload.data['attachments']],
+                embeds=[discord.Embed.from_dict(e) for e in payload.data['embeds']]
+        )
+
+
+
+        if not (before := payload.cached_message):
+            before = PartialMessage(
+                    id=after.id, created_at=after.created_at, edited_at=after.edited_at, guild=after.guild, author=after.author, channel=after.channel, content='*No content*',
+                    jump_url=after.jump_url, pinned=False, attachments=after.attachments, embeds=after.embeds
+            )
+
+        if before.pinned != after.pinned:
+            await self._log_pin(message=after)
+            return
+
+        await self._log_update(before=before, after=after)
+
+    # Channel logging
+
+    @commands.Cog.listener()
+    async def on_guild_channel_create(self, channel: Union[discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StageChannel]) -> None:
+
+        if config.ENV == enums.Environment.DEV:
+            return
+
+        embed = discord.Embed(
+                colour=discord.Colour(0x00FF00), title=f'Channel created:',
+                description=f'`Name:` {channel.name} `{channel.id}`\n'
+                            f'`Type:` {str(channel.type).title().replace("_", " ")}\n'
+                            f'`Time:` {utils.format_datetime(channel.created_at, seconds=True)}\n'
+                            f'`Position:` {channel.position}\n'
+                            f'{f"`Category:` {channel.category} `{channel.category_id}`" if channel.category else ""}'
+        )
+        embed.set_footer(text=f'ID: {channel.id}')
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
+
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel: Union[discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StageChannel]) -> None:
+
+        if config.ENV == enums.Environment.DEV:
+            return
+
+        embed = discord.Embed(
+                colour=discord.Colour(0xFF0000), title=f'Channel deleted:',
+                description=f'`Name:` {channel.name} `{channel.id}`\n'
+                            f'`Type:` {str(channel.type).title().replace("_", " ")}\n'
+                            f'`Time:` {utils.format_datetime(pendulum.now(tz="UTC"), seconds=True)}\n'
+                            f'`Position:` {channel.position}\n'
+                            f'{f"`Category:` {channel.category} `{channel.category_id}`" if channel.category else ""}'
+        )
+        embed.set_footer(text=f'ID: {channel.id}')
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
+
+    @commands.Cog.listener()
+    async def on_guild_channel_update(
+            self, before: Union[discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StageChannel],
+            after: Union[discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StageChannel]
+    ) -> None:
+
+        if config.ENV == enums.Environment.DEV:
+            return
+
+        embed = discord.Embed(
+                colour=discord.Colour(0xFAA61A), title='Channel updated:',
+                description=f'`Name:` {before.name} `{before.id}`\n'
+                            f'`Type:` {str(before.type).title().replace("_", " ")}\n'
+                            f'`Time:` {utils.format_datetime(pendulum.now(tz="UTC"), seconds=True)}'
+        )
         embed.set_footer(text=f'ID: {before.id}')
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, message: discord.Message, bulk: bool = False) -> None:
+        # Common attributes
+        if before.category != after.category:
+            embed.add_field(name='Category:', value=f'`Before:` {before.category}\n`After:` {after.category}', inline=False)
+        if before.name != after.name:
+            embed.add_field(name='Name:', value=f'`Before:` {before.name}\n`After:` {after.name}', inline=False)
+        if before.permissions_synced != after.permissions_synced:
+            embed.add_field(name='Permissions synced:', value=f'`Before:` {before.permissions_synced}\n`After:` {after.permissions_synced}', inline=False)
+        if before.position != after.position:
+            embed.add_field(name='Position:', value=f'`Before:` {before.position}\n`After:` {after.position}')
 
-        if config.PREFIX == '!!':
-            return
-        if message.author.bot or (message.guild and message.guild.id not in {config.ALESS_LAND_GUILD_ID, config.SKELETON_CLIQUE_GUILD_ID}):
-            return
+        if before.changed_roles != after.changed_roles:
+            embed.add_field(
+                    name='Changed roles:',
+                    value=f'`Before:` {" ".join(role.mention for role in before.changed_roles)}\n`After:` {" ".join(role.mention for role in after.changed_roles)}', inline=False
+            )
 
-        ctx = await self.bot.get_context(message=message)
-        content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=message.content) if message.content else "*No content*"
+        if before.overwrites != after.overwrites:  # I hate this so much...
 
-        embed = discord.Embed(colour=ctx.colour, title=f'Message deleted{" (Bulk message delete)" if bulk else ""}:', description=f'{content}')
-        info = f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n`Author:` {ctx.author} `{ctx.author.id}`\n`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
-        embed.add_field(name='Info:', value=info, inline=False)
-        embed.set_footer(text=f'ID: {message.id}')
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
+            changes = []
+            if added := {k: v for k, v in after.overwrites.items() if k not in before.overwrites}:
+                changes.append(f'`Added:` {" ".join(getattr(before.guild.get_member(ow.id) or before.guild.get_role(ow.id), "mention", None) for ow in added)}')
+            if removed := {k: v for k, v in before.overwrites.items() if k not in after.overwrites}:
+                changes.append(f'`Removed:` {" ".join(getattr(before.guild.get_member(ow.id) or before.guild.get_role(ow.id), "mention", None) for ow in removed)}')
+            if changed := {k: v for k, v in after.overwrites.items() if v != before.overwrites.get(k, v)}:
+                changes.append(f'`Changed:` {" ".join(getattr(before.guild.get_member(ow.id) or before.guild.get_role(ow.id), "mention", None) for ow in changed)}')
 
-        if message.attachments:
+            embed.add_field(name='Overwrites:', value='\n'.join(changes), inline=False)
 
-            for attachment in message.attachments:
-                try:
-                    await self.bot.COMMON_LOG.send(content=f'Deleted attachments in message `{message.id}`:', file=await attachment.to_file(use_cached=True),
-                                                   username=f'{ctx.author}', avatar_url=utils.avatar(person=ctx.author))
-                except (discord.HTTPException, discord.Forbidden, discord.NotFound):
-                    continue
+        # Text
+        if isinstance(before, discord.TextChannel) and before.slowmode_delay != after.slowmode_delay:
+            embed.add_field(
+                    name='Slowmode:',
+                    value=f'`Before:` {utils.format_seconds(before.slowmode_delay, friendly=True)}\n'
+                          f'`After:` {utils.format_seconds(after.slowmode_delay, friendly=True)}', inline=False
+            )
 
-    @commands.Cog.listener()
-    async def on_bulk_message_delete(self, messages: list[discord.Message]) -> None:
+        # Text and stage
+        if isinstance(before, (discord.TextChannel, discord.StageChannel)) and before.topic != after.topic:
+            embed.add_field(name='Topic:', value=f'`Before:` {before.topic}\n`After:` {after.topic}', inline=False)
 
-        for message in messages:
-            await self.on_message_delete(message=message, bulk=True)
-            await asyncio.sleep(3)
+        # Voice and stage
+        if isinstance(before, (discord.VoiceChannel, discord.StageChannel)):
+            if before.bitrate != after.bitrate:
+                embed.add_field(name='Bitrate:', value=f'`Before:` {round(before.bitrate / 1000)} kbps\n`After:` {round(after.bitrate / 1000)} kbps', inline=False)
+            if before.rtc_region != after.rtc_region:
+                embed.add_field(name='Region:', value=f'`Before:` {utils.voice_region(before)}\n`After:` {utils.voice_region(after)}', inline=False)
+            if before.user_limit != after.user_limit:
+                embed.add_field(name='User limit:', value=f'`Before:` {before.user_limit}\n`After:` {after.user_limit}', inline=False)
 
-    #
+        await self.bot.COMMON_LOG.send(embed=embed, username=f'Logs: Channels', avatar_url=utils.icon(guild=before.guild))
+
+    # Member logging
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
 
-        if config.PREFIX == '!!':
+        if config.ENV == enums.Environment.DEV:
             return
+
         if member.guild.id != config.SKELETON_CLIQUE_GUILD_ID:
             return
 
-        embed = discord.Embed(colour=discord.Colour(0x00FF00), title=f'`{member}` just joined', description=f'{member.mention}')
+        embed = discord.Embed(colour=discord.Colour(0x00FF00), title=f'`{member}` just joined', description=member.mention)
         info = f'`Time joined:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
                f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
                f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
@@ -281,27 +482,24 @@ class Events(commands.Cog):
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
 
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.avatar(person=member))
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'Logs: Members', avatar_url=utils.avatar(person=member))
 
-        channel = member.guild.get_channel(config.GENERAL_CHAT_ID)
-        message = random.choice(self.WELCOME_MESSAGES).format(user=member.mention)
-        await channel.send(message)
-
-        role = member.guild.get_role(config.CLIQUE_ROLE_ID)
-        await member.add_roles(role)
+        await member.guild.get_channel(config.GENERAL_CHAT_ID).send(random.choice(self.WELCOME_MESSAGES).format(user=member.mention))
+        await member.add_roles(member.guild.get_role(config.CLIQUE_ROLE_ID))
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:
 
-        if config.PREFIX == '!!':
+        if config.ENV == enums.Environment.DEV:
             return
+
         if member.guild.id != config.SKELETON_CLIQUE_GUILD_ID:
             return
 
         members = member.guild.members.copy()
         members.append(member)
 
-        embed = discord.Embed(colour=discord.Colour(0xFF0000), title=f'`{member}` just left', description=f'{member.mention}')
+        embed = discord.Embed(colour=discord.Colour(0xFF0000), title=f'`{member}` just left', description=member.mention)
         info = f'`Time left:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
                f'`Join position:` {sorted(members, key=lambda m: m.joined_at).index(member) + 1}\n' \
                f'`Member count:` {len(members) - 1}\n' \
@@ -309,8 +507,7 @@ class Events(commands.Cog):
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
 
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'{member}', avatar_url=utils.avatar(person=member))
-
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Members', avatar_url=utils.avatar(person=member))
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Events(bot=bot))
