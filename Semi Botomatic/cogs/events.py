@@ -321,7 +321,10 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message) -> None:
 
-        if message.author.bot or config.ENV == enums.Environment.DEV:
+        if config.ENV == enums.Environment.DEV:
+            return
+
+        if message.author.bot or getattr(message.guild, 'id', None) not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
             return
 
         await self._log_delete(message=message)
@@ -345,13 +348,14 @@ class Events(commands.Cog):
                 embeds=[discord.Embed.from_dict(e) for e in payload.data['embeds']]
         )
 
-
-
         if not (before := payload.cached_message):
             before = PartialMessage(
                     id=after.id, created_at=after.created_at, edited_at=after.edited_at, guild=after.guild, author=after.author, channel=after.channel, content='*No content*',
                     jump_url=after.jump_url, pinned=False, attachments=after.attachments, embeds=after.embeds
             )
+
+        if before.author.bot or getattr(before.guild, 'id', None) not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
+            return
 
         if before.pinned != after.pinned:
             await self._log_pin(message=after)
