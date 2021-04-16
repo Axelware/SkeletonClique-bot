@@ -329,7 +329,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
 
-        if payload.data['author']['bot'] or config.ENV == enums.Environment.DEV:
+        if config.ENV == enums.Environment.DEV:
             return
 
         guild = self.bot.get_guild(payload.guild_id)
