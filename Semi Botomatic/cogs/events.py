@@ -368,7 +368,7 @@ class Events(commands.Cog):
             return
 
         embed = discord.Embed(
-                colour=discord.Colour(0x00FF00), title=f'Channel created:',
+                colour=discord.Colour(0x00FF00), title='Channel created:',
                 description=f'`Name:` {channel.name} `{channel.id}`\n'
                             f'`Type:` {str(channel.type).title().replace("_", " ")}\n'
                             f'`Time:` {utils.format_datetime(channel.created_at, seconds=True)}\n'
@@ -376,7 +376,7 @@ class Events(commands.Cog):
                             f'{f"`Category:` {channel.category} `{channel.category_id}`" if channel.category else ""}'
         )
         embed.set_footer(text=f'ID: {channel.id}')
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
+        await self.bot.COMMON_LOG.send(embed=embed, username='Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
 
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel: Union[discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StageChannel]) -> None:
@@ -385,7 +385,7 @@ class Events(commands.Cog):
             return
 
         embed = discord.Embed(
-                colour=discord.Colour(0xFF0000), title=f'Channel deleted:',
+                colour=discord.Colour(0xFF0000), title='Channel deleted:',
                 description=f'`Name:` {channel.name} `{channel.id}`\n'
                             f'`Type:` {str(channel.type).title().replace("_", " ")}\n'
                             f'`Time:` {utils.format_datetime(pendulum.now(tz="UTC"), seconds=True)}\n'
@@ -393,7 +393,7 @@ class Events(commands.Cog):
                             f'{f"`Category:` {channel.category} `{channel.category_id}`" if channel.category else ""}'
         )
         embed.set_footer(text=f'ID: {channel.id}')
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
+        await self.bot.COMMON_LOG.send(embed=embed, username='Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
 
     @commands.Cog.listener()
     async def on_guild_channel_update(
@@ -461,7 +461,7 @@ class Events(commands.Cog):
             if before.user_limit != after.user_limit:
                 embed.add_field(name='User limit:', value=f'`Before:` {before.user_limit}\n`After:` {after.user_limit}', inline=False)
 
-        await self.bot.COMMON_LOG.send(embed=embed, username=f'Logs: Channels', avatar_url=utils.icon(guild=before.guild))
+        await self.bot.COMMON_LOG.send(embed=embed, username='Logs: Channels', avatar_url=utils.icon(guild=before.guild))
 
     # Member logging
 
@@ -482,7 +482,7 @@ class Events(commands.Cog):
         embed.add_field(name='Info:', value=info, inline=False)
         embed.set_footer(text=f'ID: {member.id}')
 
-        await self.bot.IMPORTANT_LOG.send(embed=embed, username=f'Logs: Members', avatar_url=utils.avatar(person=member))
+        await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Members', avatar_url=utils.avatar(person=member))
 
         await member.guild.get_channel(config.GENERAL_CHAT_ID).send(random.choice(self.WELCOME_MESSAGES).format(user=member.mention))
         await member.add_roles(member.guild.get_role(config.CLIQUE_ROLE_ID))
