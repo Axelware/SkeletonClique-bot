@@ -23,7 +23,7 @@ class Settings(commands.Cog):
                 title='Guild settings:',
                 description=f'`Embed size`: {ctx.guild_config.embed_size.name.title()}'
         )
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @settings.command(name='embed-size', aliases=['embedsize', 'es'])
     async def config_embed_size(self, ctx: context.Context, operation: Literal['set', 'reset'] = None, size: Literal['large', 'medium', 'small'] = None) -> None:
@@ -37,7 +37,7 @@ class Settings(commands.Cog):
         """
 
         if not operation:
-            await ctx.send(f'This servers embed size is `{ctx.guild_config.embed_size.name.title()}`.')
+            await ctx.reply(f'This servers embed size is `{ctx.guild_config.embed_size.name.title()}`.')
             return
 
         if await self.bot.is_owner(user=ctx.author) is False:
@@ -49,12 +49,12 @@ class Settings(commands.Cog):
                 raise exceptions.ArgumentError('You did not provide a valid size. Available sizes are `large`, `medium` or `small`.')
 
             await self.bot.guild_manager.set_embed_size(ctx.guild.id, embed_size=getattr(enums.EmbedSize, size.upper()))
-            await ctx.send(f'Set this servers embed size to `{size.title()}`.')
+            await ctx.reply(f'Set this servers embed size to `{size.title()}`.')
 
         elif operation == 'reset':
 
             await self.bot.guild_manager.set_embed_size(ctx.guild.id)
-            await ctx.send('Set this servers embed size to `Large`.')
+            await ctx.reply('Set this servers embed size to `Large`.')
 
 
 def setup(bot: SemiBotomatic) -> None:

@@ -49,7 +49,7 @@ class Todo(commands.Cog):
             raise exceptions.ArgumentError('Your todo can not be more than 180 characters long.')
 
         todo = await self.bot.todo_manager.create_todo(ctx.author.id, content=content, jump_url=ctx.message.jump_url)
-        await ctx.send(f'Todo with id `{todo.id}` was created.')
+        await ctx.reply(f'Todo with id `{todo.id}` was created.')
 
     @todo.command(name='delete', aliases=['remove'])
     async def todo_delete(self, ctx: context.Context, *, todo_ids: str) -> None:
@@ -82,7 +82,7 @@ class Todo(commands.Cog):
                                                            f'{ctx.user_config.todos[todo_id].content}' for todo_id in todo_ids_to_delete))
 
         await self.bot.todo_manager.delete_todos(ctx.author.id, todo_ids=todo_ids_to_delete)
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @todo.command(name='clear')
     async def todo_clear(self, ctx: context.Context) -> None:
@@ -95,7 +95,7 @@ class Todo(commands.Cog):
 
         todo_ids = list(ctx.user_config.todos.keys())
         await self.bot.todo_manager.delete_todos(ctx.author.id, todo_ids=todo_ids)
-        await ctx.send(f'Cleared your todo list of `{len(todo_ids)}` todo{"s" if len(todo_ids) > 1 else ""}.')
+        await ctx.reply(f'Cleared your todo list of `{len(todo_ids)}` todo{"s" if len(todo_ids) > 1 else ""}.')
 
     @todo.command(name='edit', aliases=['update'])
     async def todo_edit(self, ctx: context.Context, todo_id: str, *, content: commands.clean_content) -> None:
@@ -123,7 +123,7 @@ class Todo(commands.Cog):
             raise exceptions.ArgumentError(f'You do not have a todo with the id `{todo_id}`.')
 
         await self.bot.todo_manager.edit_todo_content(ctx.author.id, todo_id=todo.id, content=content, jump_url=ctx.message.jump_url)
-        await ctx.send(f'Edited todo with id `{todo_id}`.')
+        await ctx.reply(f'Edited todo with id `{todo_id}`.')
 
 
 def setup(bot: SemiBotomatic) -> None:

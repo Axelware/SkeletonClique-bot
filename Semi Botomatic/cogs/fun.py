@@ -56,7 +56,7 @@ class Fun(commands.Cog):
         if self.PREDICTIONS.get(question) is None:
             self.PREDICTIONS[question] = random.choice(self.RESPONSES)
 
-        await ctx.send(self.PREDICTIONS[question])
+        await ctx.reply(self.PREDICTIONS[question])
 
     @commands.command(name='rate', aliases=['rateme'])
     async def rate(self, ctx: context.Context, *, thing: Union[discord.Member, str] = None) -> None:
@@ -74,7 +74,7 @@ class Fun(commands.Cog):
         if self.RATES.get(thing) is None:
             self.RATES[thing] = random.choice(self.RATINGS)
 
-        await ctx.send(f'I\'d rate {thing} a {self.RATES[thing]}')
+        await ctx.reply(f'I\'d rate {thing} a {self.RATES[thing]}')
 
     @commands.command(name='choose', aliases=['choice'])
     async def choose(self, ctx: context.Context, *choices: commands.clean_content) -> None:
@@ -87,7 +87,7 @@ class Fun(commands.Cog):
         if len(choices) <= 1:
             raise exceptions.ArgumentError('Not enough choices to choose from.')
 
-        await ctx.send(random.choice(list(map(str, choices))))
+        await ctx.reply(random.choice(list(map(str, choices))))
 
     @commands.command(name='choosebestof', aliases=['cbo', 'bestof'])
     async def choosebestof(self, ctx: context.Context, times: Optional[int], *choices: commands.clean_content) -> None:
@@ -131,7 +131,7 @@ class Fun(commands.Cog):
 
         embed = discord.Embed(colour=ctx.colour, title=f'{language}!')
         embed.set_image(url=f'https://github.com/laynH/Anime-Girls-Holding-Programming-Books/blob/master/{urllib.parse.quote(language)}/{urllib.parse.quote(image)}?raw=true')
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
 
 def setup(bot: SemiBotomatic) -> None:

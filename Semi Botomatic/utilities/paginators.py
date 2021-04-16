@@ -121,7 +121,7 @@ class Paginator(BasePaginator):
 
     async def paginate(self) -> None:
 
-        self.message = await self.ctx.send(f'{self.codeblock_start}{self.header}{self.pages[self.page]}{self.footer}{self.codeblock_end}')
+        self.message = await self.ctx.reply(f'{self.codeblock_start}{self.header}{self.pages[self.page]}{self.footer}{self.codeblock_end}')
         self.task_loop = asyncio.create_task(self.loop())
 
     async def first(self) -> None:
@@ -192,7 +192,7 @@ class EmbedPaginator(BasePaginator):
     async def paginate(self) -> None:
 
         self.embed.description = f'{self.codeblock_start}{self.header}{self.pages[self.page]}{self.footer}{self.codeblock_end}'
-        self.message = await self.ctx.send(embed=self.embed)
+        self.message = await self.ctx.reply(embed=self.embed)
 
         self.task_loop = asyncio.create_task(self.loop())
 
@@ -325,7 +325,7 @@ class EmbedsPaginator:
 
     async def paginate(self) -> None:
 
-        self.message = await self.ctx.send(embed=self.entries[self.page])
+        self.message = await self.ctx.reply(embed=self.entries[self.page])
         self.task_loop = asyncio.create_task(self.loop())
 
     async def first(self) -> None:

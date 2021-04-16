@@ -34,13 +34,13 @@ class Radio(commands.Cog):
 
         try:
             await ctx.author.send(embed=embed)
-            await ctx.send('Sent you a DM!')
+            await ctx.reply('Sent you a DM!')
         except discord.Forbidden:
             raise exceptions.VoiceError('I am unable to send direct messages to you, please enable them so that I can DM you your spotify authorisation link.')
 
     @commands.group(name='radio', invoke_without_command=True)
     async def radio(self, ctx: context.Context) -> None:
-        await ctx.send('hi yes radio time :pog:')
+        pass
 
     @radio.command(name='start')
     async def radio_start(self, ctx: context.Context) -> None:

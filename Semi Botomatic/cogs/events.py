@@ -256,15 +256,15 @@ class Events(commands.Cog):
             message = f'The bot requires the roles {", ".join([f"`{role}`" for role in error.missing_roles])} to run this command.'
 
         if message:
-            await ctx.send(message)
+            await ctx.reply(message)
         elif (message := self.OTHER_ERRORS.get(type(error))) is not None:
-            await ctx.send(message.format(command=ctx.command.qualified_name, error=error, prefix=config.PREFIX))
+            await ctx.reply(message.format(command=ctx.command.qualified_name, error=error, prefix=config.PREFIX))
         else:
             await self.handle_traceback(ctx=ctx, error=error)
 
     async def handle_traceback(self, *, ctx: context.Context, error) -> None:
 
-        await ctx.send('Something went wrong while executing that command.')
+        await ctx.reply('Something went wrong while executing that command.')
 
         error_traceback = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
         print(f'\n{error_traceback}\n', file=sys.stderr)

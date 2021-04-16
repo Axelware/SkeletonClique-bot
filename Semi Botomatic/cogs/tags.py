@@ -41,7 +41,7 @@ class Tags(commands.Cog):
         if tags[0].alias is not None:
             tags = self.bot.tag_manager.get_tags_matching(name=tags[0].alias)
 
-        await ctx.send(tags[0].content)
+        await ctx.reply(tags[0].content)
 
     @tag.command(name='raw')
     async def tag_raw(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:
@@ -62,7 +62,7 @@ class Tags(commands.Cog):
         if tags[0].alias is not None:
             tags = self.bot.tag_manager.get_tags_matching(name=tags[0].alias)
 
-        await ctx.send(discord.utils.escape_markdown(tags[0].content))
+        await ctx.reply(discord.utils.escape_markdown(tags[0].content))
 
     @tag.command(name='create', aliases=['make', 'add'])
     async def tag_create(self, ctx: context.Context, name: converters.TagNameConverter, *, content: converters.TagContentConverter) -> None:
@@ -82,7 +82,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError(f'There is already a tag with the name `{name}`.')
 
         await self.bot.tag_manager.create_tag(user_id=ctx.author.id, name=str(name), content=str(content))
-        await ctx.send(f'Created tag with name `{name}`')
+        await ctx.reply(f'Created tag with name `{name}`')
 
     @tag.command(name='alias')
     async def tag_alias(self, ctx: context.Context, alias: converters.TagNameConverter, original: converters.TagNameConverter) -> None:
@@ -106,7 +106,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError(f'There are no tags in this server with the name `{original}`.')
 
         await self.bot.tag_manager.create_tag_alias(user_id=ctx.author.id, alias=str(alias), original=str(original))
-        await ctx.send(f'Tag alias from `{alias}` to `{original}` was created.')
+        await ctx.reply(f'Tag alias from `{alias}` to `{original}` was created.')
 
     @tag.command(name='claim')
     async def tag_claim(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:
@@ -129,7 +129,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError('The owner of that tag is still in the server.')
 
         await self.bot.tag_manager.edit_tag_owner(name=str(name), user_id=ctx.author.id)
-        await ctx.send(f'You claimed the tag with name `{name}`.')
+        await ctx.reply(f'You claimed the tag with name `{name}`.')
 
     @tag.command(name='transfer')
     async def tag_transfer(self, ctx: context.Context, name: converters.TagNameConverter, *, member: discord.Member) -> None:
@@ -155,7 +155,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError(f'You do not own the tag with name `{name}`.')
 
         await self.bot.tag_manager.edit_tag_owner(name=str(name), user_id=member.id)
-        await ctx.send(f'Transferred tag from `{ctx.author}` to `{(await self.bot.fetch_user(tag.user_id))}`.')
+        await ctx.reply(f'Transferred tag from `{ctx.author}` to `{(await self.bot.fetch_user(tag.user_id))}`.')
 
     @tag.command(name='edit')
     async def tag_edit(self, ctx: context.Context, name: converters.TagNameConverter, *, content: converters.TagContentConverter) -> None:
@@ -174,7 +174,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError(f'You do not own the tag with the name `{name}`.')
 
         await self.bot.tag_manager.edit_tag_content(name=str(name), content=str(content))
-        await ctx.send(f'Edited content of tag with name `{name}`.')
+        await ctx.reply(f'Edited content of tag with name `{name}`.')
 
     @tag.command(name='delete', aliases=['remove'])
     async def tag_delete(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:
@@ -191,7 +191,7 @@ class Tags(commands.Cog):
             raise exceptions.ArgumentError(f'You do not own the tag with name `{name}`.')
 
         await self.bot.tag_manager.delete_tag(name=str(name))
-        await ctx.send(f'Deleted tag with name `{name}`.')
+        await ctx.reply(f'Deleted tag with name `{name}`.')
 
     @tag.command(name='search')
     async def tag_search(self, ctx: context.Context, *, name: converters.TagNameConverter) -> None:
@@ -256,7 +256,7 @@ class Tags(commands.Cog):
         embed = discord.Embed(colour=ctx.colour)
         embed.description = f'**{tag.name}**\n`Owner:` {owner.mention if owner else "None"} ({tag.user_id})\n`Claimable:` {owner is None}\n`Alias:` {tag.alias}'
         embed.set_footer(text=f'Created on {utils.format_datetime(datetime=tag.created_at)}')
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
 
 def setup(bot: SemiBotomatic) -> None:

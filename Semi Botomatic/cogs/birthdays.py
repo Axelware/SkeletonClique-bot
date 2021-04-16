@@ -38,7 +38,7 @@ class Birthdays(commands.Cog):
                             f'`Next birthday:` In {utils.format_difference(datetime=user_config.next_birthday.subtract(days=1), suppress=[])}\n'
                             f'`Age:` {user_config.age}\n',
         )
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @birthdays.command(name='set')
     async def birthdays_set(self, ctx: context.Context, *, date: converters.DatetimeConverter) -> None:
@@ -62,7 +62,7 @@ class Birthdays(commands.Cog):
             raise exceptions.ArgumentError('You must be more than 13 (As per discord TOS) and less than 150 years old.')
 
         await self.bot.user_manager.set_birthday(ctx.author.id, birthday=result[1])
-        await ctx.send(f'Your birthday has been set to `{utils.format_date(datetime=ctx.user_config.birthday)}`.')
+        await ctx.reply(f'Your birthday has been set to `{utils.format_date(datetime=ctx.user_config.birthday)}`.')
 
     @birthdays.command(name='reset')
     async def birthdays_reset(self, ctx: context.Context) -> None:
@@ -71,7 +71,7 @@ class Birthdays(commands.Cog):
         """
 
         await self.bot.user_manager.set_birthday(ctx.author.id, birthday=pendulum.date(2020, 1, 1))
-        await ctx.send('Your birthday was reset.')
+        await ctx.reply('Your birthday was reset.')
 
     @birthdays.command(name='private')
     async def birthdays_private(self, ctx: context.Context) -> None:
@@ -83,7 +83,7 @@ class Birthdays(commands.Cog):
             raise exceptions.GeneralError('Your birthday is already private.')
 
         await self.bot.user_manager.set_birthday(ctx.author.id, private=True)
-        await ctx.send('Your birthday is now private.')
+        await ctx.reply('Your birthday is now private.')
 
     @birthdays.command(name='public')
     async def birthdays_public(self, ctx: context.Context) -> None:
@@ -95,7 +95,7 @@ class Birthdays(commands.Cog):
             raise exceptions.GeneralError('Your birthday is already public.')
 
         await self.bot.user_manager.set_birthday(ctx.author.id, private=False)
-        await ctx.send('Your birthday is now public.')
+        await ctx.reply('Your birthday is now public.')
 
     @birthdays.command(name='upcoming')
     async def birthdays_upcoming(self, ctx: context.Context) -> None:
@@ -125,7 +125,7 @@ class Birthdays(commands.Cog):
                     inline=False
             )
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @birthdays.command(name='list')
     async def birthdays_list(self, ctx: context.Context) -> None:
@@ -181,7 +181,7 @@ class Birthdays(commands.Cog):
                         value=f'`Birthday:` {utils.format_date(datetime=first[1].birthday)}\n'
                               f'`Next birthday:` In {utils.format_difference(datetime=first[1].next_birthday.subtract(days=1), suppress=[])}\n'
                               f'`Age:` {first[1].age}\n')
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
 
 def setup(bot: SemiBotomatic) -> None:

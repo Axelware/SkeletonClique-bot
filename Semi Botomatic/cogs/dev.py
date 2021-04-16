@@ -57,7 +57,7 @@ class Dev(commands.Cog):
         embed = discord.Embed(title=f'{self.bot.user.name} bot information page.', colour=0xF5F5F5)
         embed.description = '\n\n'.join(description)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @commands.is_owner()
     @dev.command(name='cleanup', aliases=['clean'], hidden=True)
@@ -73,7 +73,7 @@ class Dev(commands.Cog):
         else:
             messages = await ctx.channel.purge(check=lambda message: message.author == ctx.me, bulk=False, limit=limit)
 
-        await ctx.send(f'Found and deleted `{len(messages)}` of my message(s) out of the last `{limit}` message(s).', delete_after=3)
+        await ctx.reply(f'Found and deleted `{len(messages)}` of my message(s) out of the last `{limit}` message(s).', delete_after=3)
 
     @commands.is_owner()
     @dev.command(name='socketstats', aliases=['ss'], hidden=True)
@@ -94,7 +94,7 @@ class Dev(commands.Cog):
         description.append('```')
 
         embed = discord.Embed(title=f'{self.bot.user.name} socket stats.', colour=ctx.colour, description='\n'.join(description))
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     @dev.group(name='blacklist', aliases=['bl'], hidden=True, invoke_without_command=True)
     async def dev_blacklist(self, ctx: context.Context) -> None:
@@ -102,7 +102,7 @@ class Dev(commands.Cog):
         Base command for blacklisting.
         """
 
-        await ctx.send(f'Choose a valid subcommand. Use `{config.PREFIX}help dev blacklist` for more information.')
+        await ctx.reply(f'Choose a valid subcommand. Use `{config.PREFIX}help dev blacklist` for more information.')
 
     @dev_blacklist.group(name='users', aliases=['user', 'u'], hidden=True, invoke_without_command=True)
     async def dev_blacklist_users(self, ctx: context.Context) -> None:
@@ -135,7 +135,7 @@ class Dev(commands.Cog):
             raise exceptions.ArgumentError('That user is already blacklisted.')
 
         await self.bot.user_manager.set_blacklisted(user.id, reason=reason)
-        await ctx.send(f'Blacklisted user `{user.id}` with reason:\n\n`{reason}`')
+        await ctx.reply(f'Blacklisted user `{user.id}` with reason:\n\n`{reason}`')
 
     @dev_blacklist_users.command(name='remove', hidden=True)
     async def dev_blacklist_users_remove(self, ctx: context.Context, user: converters.UserConverter) -> None:
@@ -150,7 +150,7 @@ class Dev(commands.Cog):
             raise exceptions.ArgumentError('That user is not blacklisted.')
 
         await self.bot.user_manager.set_blacklisted(user.id, blacklisted=False)
-        await ctx.send(f'Unblacklisted user `{user.id}`.')
+        await ctx.reply(f'Unblacklisted user `{user.id}`.')
 
 
 def setup(bot: SemiBotomatic) -> None:
