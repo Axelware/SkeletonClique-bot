@@ -17,7 +17,7 @@ from bot import SemiBotomatic
 from utilities import context, enums, exceptions, utils
 
 __log__ = logging.getLogger(__name__)
-PartialMessage = collections.namedtuple('PartialMessage', 'id created_at edited_at guild author channel content jump_url pinned attachments embeds')
+PartialMessage = collections.namedtuple('PartialMessage', 'id created_at guild author channel content jump_url pinned attachments embeds')
 
 
 class Events(commands.Cog):
@@ -341,8 +341,8 @@ class Events(commands.Cog):
                 return
 
         after = PartialMessage(
-                id=payload.data['id'], created_at=discord.utils.snowflake_time(int(payload.data['id'])), edited_at=discord.utils.parse_time(payload.data['edited_timestamp']),
-                guild=getattr(channel, 'guild', None), author=self.bot.get_user(int(payload.data['author']['id'])), channel=channel, content=payload.data['content'],
+                id=payload.data['id'], created_at=discord.utils.snowflake_time(int(payload.data['id'])), guild=getattr(channel, 'guild', None),
+                author=self.bot.get_user(int(payload.data['author']['id'])), channel=channel, content=payload.data['content'],
                 jump_url=f'https://discord.com/channels/{getattr(guild, "id", "@me")}/{channel.id}/{payload.data["id"]}', pinned=payload.data['pinned'],
                 attachments=[discord.Attachment(data=a, state=self.bot._connection) for a in payload.data['attachments']],
                 embeds=[discord.Embed.from_dict(e) for e in payload.data['embeds']]
@@ -350,7 +350,7 @@ class Events(commands.Cog):
 
         if not (before := payload.cached_message):
             before = PartialMessage(
-                    id=after.id, created_at=after.created_at, edited_at=after.edited_at, guild=after.guild, author=after.author, channel=after.channel, content='*No content*',
+                    id=after.id, created_at=after.created_at, guild=after.guild, author=after.author, channel=after.channel, content='*No content*',
                     jump_url=after.jump_url, pinned=False, attachments=after.attachments, embeds=after.embeds
             )
 
