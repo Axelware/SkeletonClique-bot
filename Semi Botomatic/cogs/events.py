@@ -371,13 +371,18 @@ class Events(commands.Cog):
         if config.ENV == enums.Environment.DEV:
             return
 
+        if channel.guild.id not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
+            return
+
         embed = discord.Embed(
-                colour=discord.Colour(0x00FF00), title='Channel created:',
-                description=f'`Name:` {channel.name} `{channel.id}`\n'
+                colour=self.GREEN, title='Channel created:',
+                description=f'{channel.mention}\n\n'
+                            f'`Guild:` {channel.guild} `{channel.guild.id}`\n'
+                            f'{f"`Category:` {channel.category} `{channel.category_id}`{config.NL}" if channel.category else ""}'
+                            f'`Name:` {channel.name} `{channel.id}`\n'
                             f'`Type:` {str(channel.type).title().replace("_", " ")}\n'
-                            f'`Time:` {utils.format_datetime(channel.created_at, seconds=True)}\n'
                             f'`Position:` {channel.position}\n'
-                            f'{f"`Category:` {channel.category} `{channel.category_id}`" if channel.category else ""}'
+                            f'`Created at:` {utils.format_datetime(channel.created_at, seconds=True)}'
         )
         embed.set_footer(text=f'ID: {channel.id}')
         await self.bot.COMMON_LOG.send(embed=embed, username='Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
@@ -388,13 +393,17 @@ class Events(commands.Cog):
         if config.ENV == enums.Environment.DEV:
             return
 
+        if channel.guild.id not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
+            return
+
         embed = discord.Embed(
-                colour=discord.Colour(0xFF0000), title='Channel deleted:',
-                description=f'`Name:` {channel.name} `{channel.id}`\n'
+                colour=self.RED, title='Channel deleted:',
+                description=f'`Guild:` {channel.guild} `{channel.guild.id}`\n'
+                            f'{f"`Category:` {channel.category} `{channel.category_id}`{config.NL}" if channel.category else ""}'
+                            f'`Name:` {channel.name} `{channel.id}`\n'
                             f'`Type:` {str(channel.type).title().replace("_", " ")}\n'
-                            f'`Time:` {utils.format_datetime(pendulum.now(tz="UTC"), seconds=True)}\n'
                             f'`Position:` {channel.position}\n'
-                            f'{f"`Category:` {channel.category} `{channel.category_id}`" if channel.category else ""}'
+                            f'`Deleted at:` {utils.format_datetime(channel.created_at, seconds=True)}'
         )
         embed.set_footer(text=f'ID: {channel.id}')
         await self.bot.COMMON_LOG.send(embed=embed, username='Logs: Channels', avatar_url=utils.icon(guild=channel.guild))
@@ -408,8 +417,11 @@ class Events(commands.Cog):
         if config.ENV == enums.Environment.DEV:
             return
 
+        if before.guild.id not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
+            return
+
         embed = discord.Embed(
-                colour=discord.Colour(0xFAA61A), title='Channel updated:',
+                colour=self.ORANGE, title='Channel updated:',
                 description=f'`Name:` {before.name} `{before.id}`\n'
                             f'`Type:` {str(before.type).title().replace("_", " ")}\n'
                             f'`Time:` {utils.format_datetime(pendulum.now(tz="UTC"), seconds=True)}'
@@ -478,14 +490,16 @@ class Events(commands.Cog):
         if member.guild.id != config.SKELETON_CLIQUE_GUILD_ID:
             return
 
-        embed = discord.Embed(colour=discord.Colour(0x00FF00), title=f'`{member}` just joined', description=member.mention)
-        info = f'`Time joined:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
-               f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
-               f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
-               f'`Member count:` {len(member.guild.members)}\n'
-        embed.add_field(name='Info:', value=info, inline=False)
+        embed = discord.Embed(colour=self.GREEN, title=f'`{member}` just joined:', description=member.mention)
+        embed.add_field(
+                name='Info:',
+                value=f'`Time joined:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n'
+                      f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n'
+                      f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n'
+                      f'`Member count:` {len(member.guild.members)}\n'
+                      f'`Is bot:` {member.bot}', inline=False
+        )
         embed.set_footer(text=f'ID: {member.id}')
-
         await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Members', avatar_url=utils.avatar(person=member))
 
         await member.guild.get_channel(config.GENERAL_CHAT_ID).send(random.choice(self.WELCOME_MESSAGES).format(user=member.mention))
@@ -503,15 +517,46 @@ class Events(commands.Cog):
         members = member.guild.members.copy()
         members.append(member)
 
-        embed = discord.Embed(colour=discord.Colour(0xFF0000), title=f'`{member}` just left', description=member.mention)
-        info = f'`Time left:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
-               f'`Join position:` {sorted(members, key=lambda m: m.joined_at).index(member) + 1}\n' \
-               f'`Member count:` {len(members) - 1}\n' \
-               f'`Roles:` {" ".join([role.mention for role in member.roles][1:] if member.roles else ["None"])}'
-        embed.add_field(name='Info:', value=info, inline=False)
+        embed = discord.Embed(colour=self.RED, title=f'`{member}` just left:', description=member.mention)
+        embed.add_field(
+                name='Info:',
+                value=f'`Time left:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"), seconds=True)}\n' \
+                      f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
+                      f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
+                      f'`Join position:` {sorted(members, key=lambda m: m.joined_at).index(member) + 1}\n' \
+                      f'`Member count:` {len(members) - 1}\n' \
+                      f'`Roles:` {" ".join([role.mention for role in member.roles][1:] if member.roles else ["None"])}', inline=False
+        )
         embed.set_footer(text=f'ID: {member.id}')
-
         await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Members', avatar_url=utils.avatar(person=member))
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
+
+        if config.ENV == enums.Environment.DEV:
+            return
+
+        if before.guild.id != config.SKELETON_CLIQUE_GUILD_ID:
+            return
+
+        embed = discord.Embed(colour=self.ORANGE, title=f'`{after}` was updated', description=after.mention)
+
+        embed.set_footer(text=f'ID: {after.id}')
+        #await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Members', avatar_url=utils.avatar(person=after))
+
+    @commands.Cog.listener()
+    async def on_user_update(self, before: discord.User, after: discord.User) -> None:
+
+        if config.ENV == enums.Environment.DEV:
+            return
+
+        embed = discord.Embed(colour=self.ORANGE, title=f'`{after}` was updated', description=after.mention)
+
+        if before.name != after.name:
+            embed.add_field(name='Name:', value=f'`Before:` {before.name}\n`After:` {after.name}')
+
+        embed.set_footer(text=f'ID: {after.id}')
+        #await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Users', avatar_url=utils.avatar(person=after))
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Events(bot=bot))
