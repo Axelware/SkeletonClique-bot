@@ -82,8 +82,8 @@ class Time(commands.Cog):
         embed = discord.Embed(colour=ctx.colour, title=f'Time in {timezone.name}{f" ({member})" if member else ""}:', description=f'```py\n{datetime}\n```')
         await ctx.send(embed=embed)
 
-    @_timezone.command(name='timezones', aliases=['timezones', 'tzs'])
-    async def _timezone(self, ctx: context.Context) -> None:
+    @_timezone.command(name='timezones', aliases=['tzs'])
+    async def _timezones(self, ctx: context.Context) -> None:
         """
         Displays a list of timezones that can be used with the bot.
         """
@@ -265,7 +265,7 @@ class Time(commands.Cog):
 
         await ctx.send(f'Edited reminder id `{reminder.id}`\'s content.')
 
-    @reminders.group(name='repeat')
+    @reminders.command(name='repeat')
     async def reminder_repeat(self, ctx: context.Context, reminder_id: int, *, repeat_type: converters.ReminderRepeatTypeConverter) -> None:
         """
         Edit a reminders repeat type.
@@ -279,6 +279,7 @@ class Time(commands.Cog):
 
         await self.bot.reminder_manager.change_reminder_repeat_type(ctx.author.id, reminder_id=reminder.id, repeat_type=repeat_type)
         await ctx.send(f'Edited reminder id `{reminder.id}`\'s repeat type.')
+
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Time(bot=bot))
