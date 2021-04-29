@@ -12,38 +12,6 @@ class Time(commands.Cog):
     def __init__(self, bot: SemiBotomatic) -> None:
         self.bot = bot
 
-    @commands.command(name='time')
-    async def time(self, ctx: context.Context, *, timezone: str = None) -> None:
-        """
-        Displays the time of the member or timezone provided.
-
-        `timezone`: The timezone or members Name, Nickname, ID, or @Mention that you want to get.
-        """
-
-        if not timezone:
-            member = ctx.author
-            timezone = ctx.user_config.timezone
-
-        else:
-
-            try:
-                member = None
-                timezone = await converters.TimezoneConverter().convert(ctx=ctx, argument=timezone)
-            except exceptions.ArgumentError as error:
-                try:
-                    member = await commands.MemberConverter().convert(ctx=ctx, argument=timezone)
-                    user_config = self.bot.user_manager.get_config(member.id)
-                    if user_config.timezone_private is True and member.id != ctx.author.id:
-                        raise exceptions.ArgumentError('That users timezone is private.')
-                    timezone = user_config.timezone
-                except commands.BadArgument:
-                    raise exceptions.ArgumentError(str(error))
-
-        datetime = utils.format_datetime(datetime=pendulum.now(tz=timezone))
-
-        embed = discord.Embed(colour=ctx.colour, title=f'Time in {timezone.name}{f" ({member})" if member else ""}:', description=f'```py\n{datetime}\n```')
-        await ctx.reply(embed=embed)
-
     @commands.command(name='times')
     async def times(self, ctx: context.Context) -> None:
 
@@ -78,11 +46,43 @@ class Time(commands.Cog):
 
         async with ctx.typing():
             file = await self.bot.user_manager.create_timecard(guild_id=ctx.guild.id)
-            await ctx.reply(file=file)
+            await ctx.send(file=file)
 
     #
 
-    @commands.group(name='timezone', aliases=['timezones', 'tzs', 'tz'], invoke_without_command=True)
+    @commands.group(name='timezone', aliases='time', invoke_without_command=True)
+    async def _timezone(self, ctx: context.Context, *, timezone: str = None) -> None:
+        """
+        Displays the time of the member or timezone provided.
+
+        `timezone`: The timezone or members Name, Nickname, ID, or @Mention that you want to get.
+        """
+
+        if not timezone:
+            member = ctx.author
+            timezone = ctx.user_config.timezone
+
+        else:
+
+            try:
+                member = None
+                timezone = await converters.TimezoneConverter().convert(ctx=ctx, argument=timezone)
+            except exceptions.ArgumentError as error:
+                try:
+                    member = await commands.MemberConverter().convert(ctx=ctx, argument=timezone)
+                    user_config = self.bot.user_manager.get_config(member.id)
+                    if user_config.timezone_private is True and member.id != ctx.author.id:
+                        raise exceptions.ArgumentError('That users timezone is private.')
+                    timezone = user_config.timezone
+                except commands.BadArgument:
+                    raise exceptions.ArgumentError(str(error))
+
+        datetime = utils.format_datetime(datetime=pendulum.now(tz=timezone))
+
+        embed = discord.Embed(colour=ctx.colour, title=f'Time in {timezone.name}{f" ({member})" if member else ""}:', description=f'```py\n{datetime}\n```')
+        await ctx.send(embed=embed)
+
+    @commands.group(name='timezones', aliases=['timezones', 'tzs'])
     async def _timezone(self, ctx: context.Context) -> None:
         """
         Displays a list of timezones that can be used with the bot.
@@ -100,7 +100,7 @@ class Time(commands.Cog):
         """
 
         await self.bot.user_manager.set_timezone(ctx.author.id, timezone=timezone.name)
-        await ctx.reply(f'Your timezone has been set to `{ctx.user_config.timezone.name}`.')
+        await ctx.send(f'Your timezone has been set to `{ctx.user_config.timezone.name}`.')
 
     @_timezone.command(name='reset', aliases=['default'])
     async def _timezone_reset(self, ctx: context.Context) -> None:
@@ -109,7 +109,7 @@ class Time(commands.Cog):
         """
 
         await self.bot.user_manager.set_timezone(ctx.author.id)
-        await ctx.reply(f'Your timezone has been set to `{ctx.user_config.timezone.name}`.')
+        await ctx.send(f'Your timezone has been set to `{ctx.user_config.timezone.name}`.')
 
     @_timezone.command(name='private')
     async def _timezone_private(self, ctx: context.Context) -> None:
@@ -121,7 +121,7 @@ class Time(commands.Cog):
             raise exceptions.ArgumentError('Your timezone is already private.')
 
         await self.bot.user_manager.set_timezone(ctx.author.id, timezone=ctx.user_config.timezone.name, private=True)
-        await ctx.reply('Your timezone is now private.')
+        await ctx.send('Your timezone is now private.')
 
     @_timezone.command(name='public')
     async def _timezone_public(self, ctx: context.Context) -> None:
@@ -133,7 +133,7 @@ class Time(commands.Cog):
             raise exceptions.ArgumentError('Your timezone is already public.')
 
         await self.bot.user_manager.set_timezone(ctx.author.id, timezone=ctx.user_config.timezone.name)
-        await ctx.reply('Your timezone is now public.')
+        await ctx.send('Your timezone is now public.')
 
     #
 
@@ -159,8 +159,27 @@ class Time(commands.Cog):
         datetime_difference = utils.format_difference(datetime=result[1], suppress=[])
         content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=reminder['argument'], max_characters=1800)
 
-        reminder = await self.bot.reminder_manager.create_reminder(ctx.author.id, datetime=result[1], content=content, jump_url=ctx.message.jump_url)
-        await ctx.reply(f'Created a reminder with ID `{reminder.id}` for `{datetime}`, `{datetime_difference}` from now.')
+        reminder = await self.bot.reminder_manager.create_reminder(ctx.author.id, channel_id=ctx.channel.id, datetime=result[1], content=content, jump_url=ctx.message.jump_url)
+        await ctx.send(f'Created a reminder with ID `{reminder.id}` for `{datetime}`, `{datetime_difference}` from now.')
+
+    @reminders.command(name='info')
+    async def reminders_info(self, ctx: context.Context, reminder_id: int) -> None:
+        """
+        Display information about the reminder with the given id.
+        """
+
+        if not (reminder := await self.bot.reminder_manager.get_reminder(ctx.author.id, reminder_id=reminder_id)):
+            raise exceptions.ArgumentError('You do not have a reminder with that id.')
+
+        embed = discord.Embed(colour=ctx.colour)
+        embed.description = f'**Reminder `{reminder.id}`:**\n\n' \
+                            f'**{"In " if reminder.done is False else ""}{utils.format_difference(datetime=reminder.datetime, suppress=[])}{" ago" if reminder.done else ""}**\n' \
+                            f'`When:` {utils.format_datetime(datetime=reminder.datetime, seconds=True)}\n' \
+                            f'`Created:` {utils.format_datetime(datetime=reminder.created_at, seconds=True)}\n' \
+                            f'`Done:` {reminder.done}\n\n' \
+                            f'`Content:`\n {await utils.safe_text(mystbin_client=self.bot.mystbin, text=reminder.content, max_characters=1800)}\n'
+
+        await ctx.send(embed=embed)
 
     @reminders.command(name='list')
     async def reminders_list(self, ctx: context.Context) -> None:
@@ -168,8 +187,7 @@ class Time(commands.Cog):
         Display a list of your active reminders.
         """
 
-        reminders = [reminder for reminder in ctx.user_config.reminders.values() if not reminder.done]
-        if not reminders:
+        if not (reminders := [reminder for reminder in ctx.user_config.reminders.values() if not reminder.done]):
             raise exceptions.ArgumentError('You do not have any active reminders.')
 
         entries = [
@@ -218,19 +236,17 @@ class Time(commands.Cog):
                 raise exceptions.ArgumentError(f'`{reminder_id}` is not a valid reminder id.')
 
             if reminder_id in reminder_ids_to_remove:
-                raise exceptions.ArgumentError(f'You provided the reminder id `{reminder_id}` more than once.')
-
-            reminder = await self.bot.reminder_manager.get_reminder(ctx.author.id, reminder_id=reminder_id)
-            if not reminder:
+                raise exceptions.ArgumentError(f'You provided the id `{reminder_id}` more than once.')
+            if reminder_id not in ctx.user_config.reminders.keys():
                 raise exceptions.ArgumentError(f'You do not have a reminder with the id `{reminder_id}`.')
 
-            reminder_ids_to_remove.append(reminder.id)
+            reminder_ids_to_remove.append(reminder_id)
 
         for reminder_id in reminder_ids_to_remove:
             await self.bot.reminder_manager.delete_reminder(ctx.author.id, reminder_id=reminder_id)
 
         s = 's' if len(reminder_ids_to_remove) > 1 else ''
-        await ctx.reply(f'Deleted `{len(reminder_ids_to_remove)}` reminder{s} with id{s} {", ".join(f"`{reminder_id}`" for reminder_id in reminder_ids_to_remove)}.')
+        await ctx.send(f'Deleted `{len(reminder_ids_to_remove)}` reminder{s} with id{s} {", ".join(f"`{reminder_id}`" for reminder_id in reminder_ids_to_remove)}.')
 
     @reminders.command(name='edit')
     async def reminders_edit(self, ctx: context.Context, reminder_id: int, *, content: str) -> None:
@@ -241,35 +257,28 @@ class Time(commands.Cog):
         `content`: The content to edit the reminder with.
         """
 
-        reminder = await self.bot.reminder_manager.get_reminder(ctx.author.id, reminder_id=reminder_id)
-        if not reminder:
+        if not (reminder := await self.bot.reminder_manager.get_reminder(ctx.author.id, reminder_id=reminder_id)):
             raise exceptions.ArgumentError('You do not have a reminder with that id.')
 
         content = await utils.safe_text(mystbin_client=self.bot.mystbin, text=content, max_characters=1800)
-        await self.bot.reminder_manager.edit_reminder_content(ctx.author.id, reminder_id=reminder.id, content=content, jump_url=ctx.message.jump_url)
+        await self.bot.reminder_manager.change_reminder_content(ctx.author.id, reminder_id=reminder.id, content=content, jump_url=ctx.message.jump_url)
 
-        await ctx.reply(f'Edited reminder id `{reminder.id}`\'s content.')
+        await ctx.send(f'Edited reminder id `{reminder.id}`\'s content.')
 
-    @reminders.command(name='info')
-    async def reminders_info(self, ctx: context.Context, reminder_id: int) -> None:
+    @reminders.group(name='repeat')
+    async def reminder_repeat(self, ctx: context.Context, reminder_id: int, *, repeat_type: converters.ReminderRepeatTypeConverter) -> None:
         """
-        Display information about the reminder with the given id.
+        Edit a reminders repeat type.
+
+        `reminder_id`: The id of the reminder to edit.
+        `content`: The repeat type to set on the reminder.
         """
 
-        reminder = await self.bot.reminder_manager.get_reminder(ctx.author.id, reminder_id=reminder_id)
-        if not reminder:
+        if not (reminder := await self.bot.reminder_manager.get_reminder(ctx.author.id, reminder_id=reminder_id)):
             raise exceptions.ArgumentError('You do not have a reminder with that id.')
 
-        embed = discord.Embed(colour=ctx.colour)
-        embed.description = f'**Reminder `{reminder.id}`:**\n\n' \
-                            f'**{"In " if reminder.done is False else ""}{utils.format_difference(datetime=reminder.datetime, suppress=[])}{" ago" if reminder.done else ""}**\n' \
-                            f'`When:` {utils.format_datetime(datetime=reminder.datetime, seconds=True)}\n' \
-                            f'`Created:` {utils.format_datetime(datetime=reminder.created_at, seconds=True)}\n' \
-                            f'`Done:` {reminder.done}\n\n' \
-                            f'`Content:`\n {await utils.safe_text(mystbin_client=self.bot.mystbin, text=reminder.content, max_characters=1800)}\n'
-
-        await ctx.reply(embed=embed)
-
+        await self.bot.reminder_manager.change_reminder_repeat_type(ctx.author.id, reminder_id=reminder.id, repeat_type=repeat_type)
+        await ctx.send(f'Edited reminder id `{reminder.id}`\'s repeat type.')
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Time(bot=bot))

@@ -141,17 +141,20 @@ class GuildConfig:
 
 class Reminder:
 
-    __slots__ = 'data', 'id', 'user_id', 'created_at', 'datetime', 'content', 'jump_url', 'task'
+    __slots__ = 'data', 'id', 'user_id', 'channel_id', 'created_at', 'datetime', 'content', 'jump_url', 'repeat_type', 'notified', 'task'
 
     def __init__(self, data: dict) -> None:
         self.data = data
 
         self.id: int = data.get('id')
         self.user_id: int = data.get('user_id')
+        self.channel_id: int = data.get('channel_id')
         self.created_at: DateTime = pendulum.instance(data.get('created_at'), tz='UTC')
         self.datetime: DateTime = pendulum.instance(data.get('datetime'), tz='UTC')
         self.content: str = data.get('content')
         self.jump_url: str = data.get('jump_url')
+        self.repeat_type: enums.ReminderRepeatType = enums.ReminderRepeatType(value=data.get('repeat_type'))
+        self.notified: bool = data.get('notified')
 
         self.task: Optional[asyncio.Task] = None
 

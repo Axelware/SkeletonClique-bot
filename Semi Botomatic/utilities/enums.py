@@ -26,14 +26,6 @@ class Updateable(enum.Enum):
     COINS = 'coins'
     XP = 'xp'
 
-    DAILY_COLLECTED = 'daily_collected'
-    WEEKLY_COLLECTED = 'weekly_collected'
-    MONTHLY_COLLECTED = 'monthly_collected'
-
-    DAILY_STREAK = 'daily_streak'
-    WEEKLY_STREAK = 'weekly_streak'
-    MONTHLY_STREAK = 'monthly_streak'
-
 
 class EmbedSize(enum.Enum):
 
@@ -42,23 +34,31 @@ class EmbedSize(enum.Enum):
     SMALL = 2
 
 
-class ReminderRepeat(enum.Enum):
+class ReminderRepeatType(enum.Enum):
 
     NEVER = 0
 
-    EVERY_HOUR = 1
-    EVERY_DAY = 2
-    EVERY_WEEK = 3
-    EVERY_MONTH = 4
-    EVERY_YEAR = 5
+    EVERY_HALF_HOUR = 1
+    EVERY_HOUR = 2
+    EVERY_OTHER_HOUR = 3
+    BI_HOURLY = EVERY_OTHER_HOUR
 
-    EVERY_OTHER_HOUR = 6
-    EVERY_OTHER_DAY = 7
+    EVERY_HALF_DAY = 4
+    EVERY_DAY = 5
+    EVERY_OTHER_DAY = 6
+    BI_DAILY = EVERY_OTHER_DAY
+
+    EVERY_WEEK = 7
     EVERY_OTHER_WEEK = 8
-    EVERY_OTHER_MONTH = 9
-    EVERY_OTHER_YEAR = 10
+    EVERY_FORTNIGHT = EVERY_OTHER_WEEK
+    BI_WEEKLY = EVERY_OTHER_WEEK
 
-    EVERY_HALF_HOUR = 11
-    EVERY_HALF_DAY = 12
-    EVERY_HALF_MONTH = 13
-    EVERY_HALF_YEAR = 14
+    EVERY_HALF_MONTH = 9
+    EVERY_MONTH = 10
+    EVERY_OTHER_MONTH = 11
+    BI_MONTHLY = EVERY_OTHER_MONTH
+
+    EVERY_HALF_YEAR = 12
+    EVERY_YEAR = 13
+    EVERY_OTHER_YEAR = 14
+    BI_YEARLY = EVERY_OTHER_YEAR

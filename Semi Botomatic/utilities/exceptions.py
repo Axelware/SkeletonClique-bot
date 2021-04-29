@@ -9,6 +9,10 @@ class ArgumentError(SemiBotomaticError):
     pass
 
 
+class ImageError(SemiBotomaticError):
+    pass
+
+
 class VoiceError(SemiBotomaticError):
     pass
 
@@ -17,5 +21,5 @@ class GeneralError(SemiBotomaticError):
     pass
 
 
-class ImageError(SemiBotomaticError):
+class NotFound(SemiBotomaticError):
     pass
