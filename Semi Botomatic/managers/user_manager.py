@@ -259,7 +259,7 @@ class UserManager:
             avatar_bytes = io.BytesIO(await guild.get_member(user_config.id).avatar_url_as(format='png', size=256).read())
             timezone = user_config.time.format('HH:mm (ZZ)')
 
-            if not (users := timezone_avatars.get(timezone), []):
+            if not (users := timezone_avatars.get(timezone, [])):
                 if len(users) > 36:
                     break
                 timezone_avatars[timezone].append(avatar_bytes)
@@ -389,6 +389,79 @@ class UserManager:
             #
 
             image.save(fp=buffer, format='png')
+
+        buffer.seek(0)
+        return buffer
+
+    # Leaderboard image
+
+    async def create_leaderboard(self, page: int = 1, *, guild_id: int = config.SKELETON_CLIQUE_GUILD_ID) -> discord.File:
+
+        guild = self.bot.get_guild(guild_id)
+
+        leaderboard = list(self.leaderboard().values())
+        user_configs = [leaderboard[index:index + 10] for index in range(0, len(leaderboard), 10)][page - 1]
+        user_avatars = []
+        users = []
+
+        for user_config in user_configs:
+
+            user = guild.get_member(user_config.id) if guild else self.bot.get_user(user_config.id)
+            users.append(user)
+            user_avatars.append(io.BytesIO(await user.avatar_url_as(format='png', size=256).read()))
+
+        buffer = await self.bot.loop.run_in_executor(None, self.create_leaderboard_image, users, user_avatars, user_configs)
+        file = discord.File(fp=buffer, filename='level.png')
+
+        buffer.close()
+        for user_avatar_bytes in user_avatars:
+            user_avatar_bytes.close()
+
+        return file
+
+    def create_leaderboard_image(self, users: list[discord.User], user_avatars: list[io.BytesIO], user_configs: list[objects.UserConfig]) -> io.BytesIO:
+
+        buffer = io.BytesIO()
+        leaderboard_image = random.choice(self.IMAGES['SAI']['leaderboard'])
+
+        with Image.open(leaderboard_image) as image:
+            draw = ImageDraw.Draw(image)
+
+            # Title
+
+            title_text = f'XP Leaderboard:'
+            title_font = ImageFont.truetype(font=self.KABEL_BLACK_FONT, size=93)
+            draw.text(xy=(10, 10 - title_font.getoffset(title_text)[1]), text=title_text, font=title_font, fill='#1F1E1C')
+
+            # Actual content
+
+            y = 100
+
+            for user, user_avatar_bytes, user_config in zip(users, user_avatars, user_configs):
+
+                # Avatar
+
+                with Image.open(user_avatar_bytes) as avatar:
+                    avatar = avatar.resize((80, 80), resample=Image.LANCZOS)
+                    image.paste(avatar, (10, y), avatar.convert('RGBA'))
+
+                # Username and rank
+
+                name_text = f'{getattr(user, "nick", None) or user.name}'
+                name_fontsize = 50
+                name_font = ImageFont.truetype(font=self.KABEL_BLACK_FONT, size=name_fontsize)
+
+                while draw.textsize(text=name_text, font=name_font) > (690, 45):
+                    name_fontsize -= 1
+                    name_font = ImageFont.truetype(font=self.KABEL_BLACK_FONT, size=name_fontsize)
+
+                draw.text(xy=(100, y - name_font.getoffset(name_text)[1]), text=name_text, font=name_font, fill='#1F1E1C')
+
+                y += 90
+
+
+
+            image.save(buffer, 'png')
 
         buffer.seek(0)
         return buffer

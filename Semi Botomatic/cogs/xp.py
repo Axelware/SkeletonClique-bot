@@ -55,7 +55,7 @@ class Xp(commands.Cog):
 
         async with ctx.typing():
             file = await self.bot.user_manager.create_level_card(member.id, guild_id=getattr(ctx.guild, 'id', config.SKELETON_CLIQUE_GUILD_ID))
-            await ctx.send(file=file)
+            await ctx.reply(file=file)
 
     @commands.group(name='xpleaderboard', aliases=['xplb'], invoke_without_command=True)
     async def xp_leaderboard(self, ctx: context.Context, *, page: int = 1) -> None:
@@ -63,8 +63,15 @@ class Xp(commands.Cog):
         Display the leaderboard for xp, rank, and level.
         """
 
+        async with ctx.typing():
+            file = await self.bot.user_manager.create_leaderboard(page=page, guild_id=getattr(ctx.guild, 'id', None) or config.SKELETON_CLIQUE_GUILD_ID)
+            await ctx.reply(file=file)
+
     @xp_leaderboard.command(name='text')
     async def xp_leaderboard_text(self, ctx: context.Context) -> None:
+        """
+        Display the xp leaderboard in a text table.
+        """
 
         leaderboard = self.bot.user_manager.leaderboard()
         if not leaderboard:
