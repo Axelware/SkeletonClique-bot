@@ -259,7 +259,7 @@ class UserManager:
             avatar_bytes = io.BytesIO(await guild.get_member(user_config.id).avatar_url_as(format='png', size=256).read())
             timezone = user_config.time.format('HH:mm (ZZ)')
 
-            if not (users := timezone_avatars.get(timezone, [])):
+            if users := timezone_avatars.get(timezone, []):
                 if len(users) > 36:
                     break
                 timezone_avatars[timezone].append(avatar_bytes)
