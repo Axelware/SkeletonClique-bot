@@ -342,7 +342,7 @@ class Events(commands.Cog):
 
         after = PartialMessage(
                 id=payload.data['id'], created_at=discord.utils.snowflake_time(int(payload.data['id'])), guild=getattr(channel, 'guild', None),
-                author=self.bot.get_user(int(payload.data.get('author').get('id'))), channel=channel, content=payload.data.get('content', None),
+                author=self.bot.get_user(int(payload.data.get('author', {}).get('id'))), channel=channel, content=payload.data.get('content', None),
                 jump_url=f'https://discord.com/channels/{getattr(guild, "id", "@me")}/{channel.id}/{payload.data["id"]}', pinned=payload.data['pinned'],
                 attachments=[discord.Attachment(data=a, state=self.bot._connection) for a in payload.data['attachments']],
                 embeds=[discord.Embed.from_dict(e) for e in payload.data['embeds']]
