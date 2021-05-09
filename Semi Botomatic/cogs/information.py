@@ -65,12 +65,13 @@ class Information(commands.Cog):
             discord.ContentFilter.all_members: 'All members',
         }
 
-    @commands.command(name='stats', aliases=['stonks'])
+    @commands.command(name='stats')
     async def stats(self, ctx: context.Context) -> None:
         """
         Display the bots stats.
         """
 
+        # noinspection PyUnresolvedReferences
         uptime = utils.format_seconds(seconds=round(time.time() - self.bot.start_time), friendly=True)
         files, functions, lines, classes = utils.line_count()
 
@@ -87,7 +88,7 @@ class Information(commands.Cog):
         embed.add_field(name='Ping:',
                         value=f'`Latency:` {round(self.bot.latency * 1000)}ms')
 
-        embed.set_footer(text=f'Created on {utils.format_datetime(datetime=self.bot.user.created_at)}')
+        embed.set_footer(text=f'Created on {utils.format_datetime(self.bot.user.created_at)}')
         await ctx.reply(embed=embed)
 
     @commands.command(name='system', aliases=['sys'])
@@ -145,8 +146,8 @@ class Information(commands.Cog):
 
         embed = discord.Embed(colour=ctx.colour, title=f'`{guild.name}`\'s information.')
         embed.description = f'`Owner:` {guild.owner}\n' \
-                            f'`Created on:` {utils.format_datetime(datetime=guild.created_at)}\n' \
-                            f'`Created:` {utils.format_difference(datetime=guild.created_at)} ago\n' \
+                            f'`Created on:` {utils.format_datetime(guild.created_at)}\n' \
+                            f'`Created:` {utils.format_difference(guild.created_at)} ago\n' \
                             f'`Members:` {guild.member_count} | ' \
                             f'<:online:737824551471284356>{statuses[discord.Status.online]} | <:away:627627415119724554>{statuses[discord.Status.idle]} | ' \
                             f'<:dnd:627627404784828416>{statuses[discord.Status.dnd]} | <:offline:627627415144890389>{statuses[discord.Status.offline]}\n' \
@@ -190,7 +191,7 @@ class Information(commands.Cog):
                             f'`Managed:` {role.managed}\n' \
                             f'`Mentionable:` {role.mentionable}\n' \
                             f'`Colour:` {str(role.colour).upper()}\n' \
-                            f'`Created at:` {utils.format_datetime(datetime=role.created_at)}\n' \
+                            f'`Created at:` {utils.format_datetime(role.created_at)}\n' \
                             f'`Members with this role:` {len(role.members)}'
 
         await ctx.reply(embed=embed)
@@ -202,7 +203,6 @@ class Information(commands.Cog):
         """
 
         counts = {role.name.title(): len(role.members) for role in ctx.guild.roles}
-
         counts['Bots (Actual)'] = len([member for member in ctx.guild.members if member.bot])
 
         roles = [f'{role_name[:20] + (role_name[20:] and ".."):23} | {role_count}' for role_name, role_count in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)]
@@ -312,8 +312,8 @@ class Information(commands.Cog):
 
         embed = discord.Embed(colour=self.COLOURS[member.status], title=f'`{member}`\'s information.')
         embed.description = f'`Discord Name:` {member} {"<:owner:738961071729278987>" if member.id == member.guild.owner.id else ""}\n' \
-                            f'`Created on:` {utils.format_datetime(datetime=member.created_at)}\n' \
-                            f'`Created:` {utils.format_difference(datetime=member.created_at)} ago\n' \
+                            f'`Created on:` {utils.format_datetime(member.created_at)}\n' \
+                            f'`Created:` {utils.format_difference(member.created_at)} ago\n' \
                             f'`Badges:` {utils.badges(bot=self.bot, person=member)}\n' \
                             f'`Status:` {member.status.name.replace("dnd", "Do Not Disturb").title()}{"<:phone:738961150343118958>" if member.is_on_mobile() else ""}\n' \
                             f'`Bot:` {str(member.bot).replace("True", "Yes").replace("False", "No")}\n' \
@@ -321,8 +321,8 @@ class Information(commands.Cog):
 
         embed.add_field(name='Server related information:',
                         value=f'`Server nickname:` {member.nick}\n'
-                              f'`Joined on:` {utils.format_datetime(datetime=member.joined_at)}\n'
-                              f'`Joined:` {utils.format_difference(datetime=member.joined_at)} ago\n'
+                              f'`Joined on:` {utils.format_datetime(member.joined_at)}\n'
+                              f'`Joined:` {utils.format_difference(member.joined_at)} ago\n'
                               f'`Join Position:` {sorted(ctx.guild.members, key=lambda m: m.joined_at).index(member) + 1}\n'
                               f'`Top role:` {member.top_role.mention}\n'
                               f'`Role count:` {len(member.roles) - 1}', inline=False)
@@ -343,8 +343,8 @@ class Information(commands.Cog):
 
         embed = discord.Embed(colour=ctx.colour, title=f'`{user}`\'s information:')
         embed.description = f'`Discord name:` {user}\n' \
-                            f'`Created on:` {utils.format_datetime(datetime=user.created_at)}\n' \
-                            f'`Created:` {utils.format_difference(datetime=user.created_at)} ago\n' \
+                            f'`Created on:` {utils.format_datetime(user.created_at)}\n' \
+                            f'`Created:` {utils.format_difference(user.created_at)} ago\n' \
                             f'`Badges:` {utils.badges(bot=self.bot, person=user)}\n' \
                             f'`Bot:` {str(user.bot).replace("True", "Yes").replace("False", "No")}'
 

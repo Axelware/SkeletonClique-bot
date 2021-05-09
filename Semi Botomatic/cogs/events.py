@@ -273,7 +273,7 @@ class Events(commands.Cog):
         info = f'{f"`Guild:` {ctx.guild} `{ctx.guild.id}`" if ctx.guild else ""}\n' \
                f'`Channel:` {ctx.channel} `{ctx.channel.id}`\n' \
                f'`Author:` {ctx.author} `{ctx.author.id}`\n' \
-               f'`Time:` {utils.format_datetime(datetime=pendulum.now(tz="UTC"))}'
+               f'`Time:` {utils.format_datetime(pendulum.now(tz="UTC"))}'
 
         embed = discord.Embed(colour=ctx.colour, description=ctx.message.content)
         embed.add_field(name='Info:', value=info)

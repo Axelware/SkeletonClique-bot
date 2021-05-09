@@ -73,7 +73,8 @@ class Dev(commands.Cog):
         else:
             messages = await ctx.channel.purge(check=lambda message: message.author == ctx.me, bulk=False, limit=limit)
 
-        await ctx.reply(f'Found and deleted `{len(messages)}` of my message(s) out of the last `{limit}` message(s).', delete_after=3)
+        s = 's' if len(messages) > 1 else ''
+        await ctx.reply(f'Found and deleted `{len(messages)}` of my message{s} out of the last `{limit}` message{s}.', delete_after=3)
 
     @commands.is_owner()
     @dev.command(name='socketstats', aliases=['ss'], hidden=True)
@@ -84,6 +85,7 @@ class Dev(commands.Cog):
 
         event_stats = collections.OrderedDict(sorted(self.bot.socket_stats.items(), key=lambda kv: kv[1], reverse=True))
         events_total = sum(event_stats.values())
+        # noinspection PyUnresolvedReferences
         events_per_second = round(events_total / round(time.time() - self.bot.start_time))
 
         description = [f'```py\n{events_total} socket events observed at a rate of {events_per_second} per second.\n']
@@ -96,30 +98,36 @@ class Dev(commands.Cog):
         embed = discord.Embed(title=f'{self.bot.user.name} socket stats.', colour=ctx.colour, description='\n'.join(description))
         await ctx.reply(embed=embed)
 
-    @dev.group(name='blacklist', aliases=['bl'], hidden=True, invoke_without_command=True)
-    async def dev_blacklist(self, ctx: context.Context) -> None:
+    #
+
+    @commands.is_owner()
+    @commands.group(name='blacklist', aliases=['bl'], hidden=True, invoke_without_command=True)
+    async def blacklist(self, ctx: context.Context) -> None:
         """
         Base command for blacklisting.
         """
 
         await ctx.reply(f'Choose a valid subcommand. Use `{config.PREFIX}help dev blacklist` for more information.')
 
-    @dev_blacklist.group(name='users', aliases=['user', 'u'], hidden=True, invoke_without_command=True)
-    async def dev_blacklist_users(self, ctx: context.Context) -> None:
+    #
+
+    @commands.is_owner()
+    @blacklist.group(name='users', aliases=['user', 'u'], hidden=True, invoke_without_command=True)
+    async def blacklist_users(self, ctx: context.Context) -> None:
         """
         Display a list of blacklisted users.
         """
 
-        blacklisted = [user_config for user_config in self.bot.user_manager.configs.values() if user_config.blacklisted is True]
-        if not blacklisted:
+        if not (blacklisted := [user_config for user_config in self.bot.user_manager.configs.values() if user_config.blacklisted is True]):
             raise exceptions.ArgumentError('There are no blacklisted users.')
 
         entries = [f'{user_config.id:<19} | {user_config.blacklisted_reason}' for user_config in blacklisted]
         header = 'User id             | Reason\n'
         await ctx.paginate(entries=entries, per_page=15, header=header, codeblock=True)
 
-    @dev_blacklist_users.command(name='add', hidden=True)
-    async def dev_blacklist_users_add(self, ctx: context.Context, user: converters.UserConverter, *, reason: str = 'No reason') -> None:
+    @commands.is_owner()
+    @blacklist_users.command(name='add', hidden=True)
+    async def blacklist_users_add(self, ctx: context.Context, user: converters.UserConverter, *, reason: str = 'No reason') -> None:
         """
         Blacklist a user.
 
@@ -134,11 +142,12 @@ class Dev(commands.Cog):
         if user_config.blacklisted is True:
             raise exceptions.ArgumentError('That user is already blacklisted.')
 
-        await self.bot.user_manager.set_blacklisted(user.id, reason=reason)
-        await ctx.reply(f'Blacklisted user `{user.id}` with reason:\n\n`{reason}`')
+        await user_config.set_blacklisted(True, reason=reason)
+        await ctx.reply(f'Added user `{user.id}` to the blacklist with reason:\n\n`{reason}`')
 
-    @dev_blacklist_users.command(name='remove', hidden=True)
-    async def dev_blacklist_users_remove(self, ctx: context.Context, user: converters.UserConverter) -> None:
+    @commands.is_owner()
+    @blacklist_users.command(name='remove', hidden=True)
+    async def blacklist_users_remove(self, ctx: context.Context, user: converters.UserConverter) -> None:
         """
         Unblacklist a user.
 
@@ -149,8 +158,8 @@ class Dev(commands.Cog):
         if user_config.blacklisted is False:
             raise exceptions.ArgumentError('That user is not blacklisted.')
 
-        await self.bot.user_manager.set_blacklisted(user.id, blacklisted=False)
-        await ctx.reply(f'Unblacklisted user `{user.id}`.')
+        await user_config.set_blacklisted(False)
+        await ctx.reply(f'Removed user `{user.id}` from the blacklist.')
 
 
 def setup(bot: SemiBotomatic) -> None:
