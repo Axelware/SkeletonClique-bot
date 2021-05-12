@@ -233,7 +233,7 @@ class Music(commands.Cog):
     @has_voice_client(try_join=True)
     async def playtop(self, ctx: context.Context, *, query: str) -> None:
         """
-        Plays/queues a track at the beginning of the queue.
+        Queues a track at the beginning of the queue.
 
         `query`: The query to search for tracks with.
 
@@ -358,7 +358,7 @@ class Music(commands.Cog):
                 message = 'Added your vote to skip.'
 
             skips_needed = (len(ctx.voice_client.listeners) // 2) + 1
-            await ctx.send(f'{message} Currently on `{len(ctx.voice_client.skip_request_ids)}` out of `{skips_needed}` votes needed to skip.')
+            await ctx.reply(f'{message} Currently on `{len(ctx.voice_client.skip_request_ids)}` out of `{skips_needed}` votes needed to skip.')
 
             if len(ctx.voice_client.skip_request_ids) >= (len(ctx.voice_client.listeners) // 2) + 1:
                 await ctx.voice_client.stop()
