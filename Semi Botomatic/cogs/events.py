@@ -96,6 +96,8 @@ class Events(commands.Cog):
         self.ORANGE = discord.Colour(0xFAA61A)
         self.GREEN = discord.Colour(0x00FF00)
 
+    # Logging methods
+
     @staticmethod
     async def _log_attachments(webhook: discord.Webhook, message: discord.Message) -> None:
 
@@ -114,8 +116,6 @@ class Events(commands.Cog):
                     content=f'Embed from message with id `{message.id}`:', embed=embed, username=f'{message.author}',
                     avatar_url=utils.avatar(person=message.author)
             )
-
-    #
 
     async def _log_dm(self, message: discord.Message) -> None:
 
@@ -198,7 +198,7 @@ class Events(commands.Cog):
         await self._log_attachments(webhook=webhook, message=message)
         await self._log_embeds(webhook=webhook, message=message)
 
-    # Error handler
+    # Error handling
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: context.Context, error: Any) -> Optional[discord.Message]:
@@ -313,6 +313,9 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
 
+        if config.ENV == enums.Environment.DEV:
+            return
+
         if message.guild or message.is_system():
             return
 
@@ -324,7 +327,7 @@ class Events(commands.Cog):
         if config.ENV == enums.Environment.DEV:
             return
 
-        if message.author.bot or getattr(message.guild, 'id', None) not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
+        if message.author.bot or (getattr(message.guild, 'id', None) not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID} if message.guild else False):
             return
 
         await self._log_delete(message=message)
@@ -342,9 +345,9 @@ class Events(commands.Cog):
 
         after = PartialMessage(
                 id=payload.data['id'], created_at=discord.utils.snowflake_time(int(payload.data['id'])), guild=getattr(channel, 'guild', None),
-                author=self.bot.get_user(int(payload.data.get('author', {}).get('id'))), channel=channel, content=payload.data.get('content', None),
-                jump_url=f'https://discord.com/channels/{getattr(guild, "id", "@me")}/{channel.id}/{payload.data["id"]}', pinned=payload.data['pinned'],
-                attachments=[discord.Attachment(data=a, state=self.bot._connection) for a in payload.data['attachments']],
+                author=self.bot.get_user(int(payload.data.get('author', {}).get('id', 0))), channel=channel, content=payload.data.get('content', None),
+                jump_url=f'https://discord.com/channels/{getattr(guild, "id", "@me")}/{channel.id}/{payload.data["id"]}', pinned=payload.data.get('pinned'),
+                attachments=[discord.Attachment(data=a, state=self.bot._connection) for a in payload.data.get('attachments')],
                 embeds=[discord.Embed.from_dict(e) for e in payload.data['embeds']]
         )
 
@@ -354,7 +357,7 @@ class Events(commands.Cog):
                     jump_url=after.jump_url, pinned=False, attachments=after.attachments, embeds=after.embeds
             )
 
-        if before.author.bot or getattr(before.guild, 'id', None) not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID}:
+        if before.author.bot or (getattr(before.guild, 'id', None) not in {config.SKELETON_CLIQUE_GUILD_ID, config.ALESS_LAND_GUILD_ID} if before.guild else False):
             return
 
         if before.pinned != after.pinned:
@@ -557,6 +560,7 @@ class Events(commands.Cog):
 
         embed.set_footer(text=f'ID: {after.id}')
         #await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Users', avatar_url=utils.avatar(person=after))
+
 
 def setup(bot: SemiBotomatic) -> None:
     bot.add_cog(Events(bot=bot))
