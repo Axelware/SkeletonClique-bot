@@ -3,7 +3,6 @@ import random
 import discord
 from discord.ext import commands
 
-import config
 from bot import SemiBotomatic
 from utilities import context, exceptions, objects, utils
 
@@ -55,27 +54,26 @@ class Economy(commands.Cog):
             member = ctx.author
 
         async with ctx.typing():
-            file = await self.bot.user_manager.create_level_card(member.id, guild_id=getattr(ctx.guild, 'id', config.SKELETON_CLIQUE_GUILD_ID))
+            file = await self.bot.user_manager.create_level_card(member.id, guild_id=getattr(ctx.guild, 'id', None))
             await ctx.reply(file=file)
 
-    @commands.group(name='xpleaderboard', aliases=['xplb'], invoke_without_command=True)
-    async def xp_leaderboard(self, ctx: context.Context, *, page: int = 1) -> None:
+    @commands.group(name='leaderboard', aliases=['lb'], invoke_without_command=True)
+    async def leaderboard(self, ctx: context.Context, *, page: int = 1) -> None:
         """
         Display the leaderboard for xp, rank, and level.
         """
 
         async with ctx.typing():
-            file = await self.bot.user_manager.create_leaderboard(page=page, guild_id=getattr(ctx.guild, 'id', None) or config.SKELETON_CLIQUE_GUILD_ID)
+            file = await self.bot.user_manager.create_leaderboard(page=page, guild_id=getattr(ctx.guild, 'id', None))
             await ctx.reply(file=file)
 
-    @xp_leaderboard.command(name='text')
-    async def xp_leaderboard_text(self, ctx: context.Context) -> None:
+    @leaderboard.command(name='text')
+    async def leaderboard_text(self, ctx: context.Context) -> None:
         """
         Display the xp leaderboard in a text table.
         """
 
-        leaderboard = self.bot.user_manager.leaderboard()
-        if not leaderboard:
+        if not (leaderboard := self.bot.user_manager.leaderboard()):
             raise exceptions.ArgumentError('There are no leaderboard stats.')
 
         header =  '╔═══════╦═══════════╦═══════╦═══════════════════════════════════════╗\n' \
@@ -89,7 +87,7 @@ class Economy(commands.Cog):
 
         entries = [
             f'║ {index + 1:<5} ║ {user_config.xp:<9} ║ {user_config.level:<5} ║ {utils.name(person=self.bot.get_user(user_config.id), guild=ctx.guild):<37} ║'
-            for index, user_config in enumerate(leaderboard.values())
+            for index, user_config in enumerate(leaderboard)
         ]
 
         await ctx.paginate(entries=entries, per_page=10, header=header, footer=footer, codeblock=True)
