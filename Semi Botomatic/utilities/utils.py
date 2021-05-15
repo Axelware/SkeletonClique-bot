@@ -1,4 +1,5 @@
 from __future__ import annotations
+import aiohttp
 
 import codecs
 import colorsys
@@ -15,6 +16,8 @@ import pendulum
 from discord.ext import commands
 
 import config
+from utilities import exceptions
+
 
 if TYPE_CHECKING:
     from bot import SemiBotomatic
@@ -235,3 +238,18 @@ def name(person: Union[discord.Member, discord.User], *, guild: discord.Guild = 
         return member.nick or member.name if isinstance(member, discord.Member) else getattr(person, 'name', 'Unknown')
 
     return person.nick or person.name if isinstance(person, discord.Member) else getattr(person, 'name', 'Unknown')
+
+
+async def upload_image(bot: SemiBotomatic, file: discord.File, format: str = 'png') -> str:
+
+    data = aiohttp.FormData()
+    data.add_field('file', file.fp, filename=f'file.{format.lower()}')
+
+    async with bot.session.post(config.CDN_UPLOAD_URL, headers=config.CDN_HEADERS, data=data) as response:
+
+        if response.status == 413:
+            raise exceptions.GeneralError('The image produced was too large to upload.')
+
+        post = await response.json()
+
+    return f'https://media.mrrandom.xyz/{post.get("filename")}'
