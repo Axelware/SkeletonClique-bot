@@ -1,186 +1,156 @@
-#  Life
-#  Copyright (C) 2020 Axel#3456
-#
-#  Life is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software
-#  Foundation, either version 3 of the License, or (at your option) any later version.
-#
-#  Life is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-#  PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
-#
-#  You should have received a copy of the GNU Affero General Public License along with Life. If not, see https://www.gnu.org/licenses/.
-#
-
+# Future
 from __future__ import annotations
 
+# Standard Library
 import abc
-import asyncio
-import contextlib
-import functools
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional
 
-import async_timeout
+# Packages
 import discord
 
-import config
-from utilities import context, paginators
+# My stuff
+from core import config, emojis, values
+from utilities import context
 
-if TYPE_CHECKING:
-    from bot import Life
+
+class PaginatorButtons(discord.ui.View):
+
+    def __init__(self, *, paginator: BasePaginator) -> None:
+        super().__init__(timeout=paginator.timeout)
+
+        self.paginator: BasePaginator = paginator
+
+    # Overridden
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user.id in {*config.OWNER_IDS, self.paginator.ctx.author.id}
+
+    async def on_timeout(self) -> None:
+        self.stop()
+        await self.paginator.stop()
+
+    async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
+        return
+
+    # Buttons
+
+    @discord.ui.button(emoji=emojis.FIRST)
+    async def first(self, _: discord.ui.Button, interaction: discord.Interaction) -> None:
+
+        await interaction.response.defer()
+
+        if not self.paginator.message or self.paginator.page == 0:
+            return
+
+        await self.paginator.change_page(page=0)
+
+    @discord.ui.button(emoji=emojis.BACKWARD)
+    async def backward(self, _: discord.ui.Button, interaction: discord.Interaction) -> None:
+
+        await interaction.response.defer()
+
+        if not self.paginator.message or self.paginator.page <= 0:
+            return
+
+        await self.paginator.change_page(page=self.paginator.page - 1)
+
+    @discord.ui.button(label="1/?")
+    async def page_label(self, _: discord.ui.Button, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
+
+    @discord.ui.button(emoji=emojis.FORWARD)
+    async def forward(self, _: discord.ui.Button, interaction: discord.Interaction) -> None:
+
+        await interaction.response.defer()
+
+        if not self.paginator.message or self.paginator.page >= len(self.paginator.pages) - 1:
+            return
+
+        await self.paginator.change_page(page=self.paginator.page + 1)
+
+    @discord.ui.button(emoji=emojis.LAST)
+    async def last(self, _: discord.ui.Button, interaction: discord.Interaction) -> None:
+
+        await interaction.response.defer()
+
+        if not self.paginator.message or self.paginator.page == len(self.paginator.pages) - 1:
+            return
+
+        await self.paginator.change_page(page=len(self.paginator.pages) - 1)
+
+    @discord.ui.button(emoji=emojis.STOP)
+    async def _stop(self, _: discord.ui.Button, interaction: discord.Interaction) -> None:
+
+        await interaction.response.defer()
+
+        self.stop()
+        await self.paginator.stop()
 
 
 class BasePaginator(abc.ABC):
 
     def __init__(
-            self, *, bot: Life = None, ctx: context.Context, entries: list[Any], per_page: int, timeout: int = 300, delete_message_when_done: bool = False,
-            delete_reactions_when_done: bool = True, codeblock: bool = False, splitter: str = '\n',
+        self,
+        *,
+        ctx: context.Context,
+        entries: list[Any],
+        per_page: int,
+        timeout: int = 300,
+        delete_message: bool = False,
+        codeblock: bool = False,
+        splitter: str = "\n"
     ) -> None:
 
-        self.bot: Life = bot or ctx.bot
         self.ctx: context.Context = ctx
-        self.entries: list[Any] = list(map(str, entries))
+        self.entries: list[Any] = entries
         self.per_page: int = per_page
 
         self.timeout: int = timeout
-        self.delete_message_when_done: bool = delete_message_when_done
-        self.delete_reactions_when_done: bool = delete_reactions_when_done
+        self.delete_message: bool = delete_message
         self.codeblock: bool = codeblock
         self.splitter: str = splitter
 
-        self.reaction_event: asyncio.Event = asyncio.Event()
-
-        self.task: Optional[asyncio.Task]= None
         self.message: Optional[discord.Message] = None
+        self.view: PaginatorButtons = PaginatorButtons(paginator=self)
 
-        self.looping: bool = True
         self.page: int = 0
 
-        self.BUTTONS = {
-            ':first:737826967910481931':    self.first,
-            ':backward:737826960885153800': self.backward,
-            ':stop:737826951980646491':     self.stop,
-            ':forward:737826943193448513':  self.forward,
-            ':last:737826943520473198':     self.last
-        }
+        if self.per_page > 1:
+            self.pages: list[Any] = [self.splitter.join(self.entries[page:page + self.per_page]) for page in range(0, len(self.entries), self.per_page)]
+        else:
+            self.pages: list[Any] = self.entries
 
-    # Properties
+        self.CODEBLOCK_START = f"```{values.NL}" if self.codeblock else ""
+        self.CODEBLOCK_END = f"{values.NL}```" if self.codeblock else ""
 
-    @functools.cached_property
-    def pages(self) -> list[str]:
-        return [self.splitter.join(self.entries[page:page + self.per_page]) for page in range(0, len(self.entries), self.per_page)]
+    #
 
-    # Checks
+    async def stop(self) -> None:
 
-    def check_reaction(self, payload: discord.RawReactionActionEvent) -> bool:
-
-        if str(payload.emoji).strip('<>') not in self.BUTTONS.keys():
-            return False
-
-        if payload.message_id != getattr(self.message, 'id') or payload.channel_id != getattr(getattr(self.message, 'channel'), 'id'):
-            return False
-
-        return payload.user_id in {*config.OWNER_IDS, self.ctx.author.id}
-
-    # Listeners
-
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent) -> None:
-
-        if not self.check_reaction(payload) or not self.looping:
+        if not self.message:
             return
 
-        self.reaction_event.set()
-        with contextlib.suppress(paginators.AlreadyOnPage, paginators.PageOutOfBounds):
-            await self.BUTTONS[str(payload.emoji).strip('<>')]()
-
-    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent) -> None:
-
-        if not self.check_reaction(payload) or not self.looping:
-            return
-
-        self.reaction_event.set()
-        with contextlib.suppress(paginators.AlreadyOnPage, paginators.PageOutOfBounds):
-            await self.BUTTONS[str(payload.emoji).strip('<>')]()
-
-    # Loop
-
-    async def loop(self) -> None:
-
-        if len(self.pages) == 1:
-            await self.message.add_reaction(':stop:737826951980646491')
+        if self.delete_message:
+            await self.message.delete()
         else:
-            for emote in self.BUTTONS:
-                await self.message.add_reaction(emote)
+            await self.message.edit(content="*Message was deleted.*", embed=None, view=None)
 
-        #
-
-        while self.looping:
-            try:
-                async with async_timeout.timeout(self.timeout):
-                    await self.reaction_event.wait()
-                    self.reaction_event.clear()
-            except asyncio.TimeoutError:
-                self.looping = False
-            else:
-                continue
-
-        #
-
-        if self.message and self.delete_reactions_when_done:
-            for reaction in self.BUTTONS:
-                await self.message.remove_reaction(reaction, self.bot.user)
-            await self.stop(delete=False)
-        else:
-            await self.stop(delete=self.delete_message_when_done)
+        self.message = None
 
     # Abstract methods
 
     @abc.abstractmethod
-    async def paginate(self) -> None:
-
-        self.task = asyncio.create_task(self.loop())
-
-        self.bot.add_listener(self.on_raw_reaction_add)
-        self.bot.add_listener(self.on_raw_reaction_remove)
+    async def set_page(self, *, page: int) -> None:
+        raise NotImplementedError
 
     @abc.abstractmethod
-    async def first(self) -> None:
-
-        if self.page == 0:
-            raise paginators.AlreadyOnPage
-
-        self.page = 0
-
-    @abc.abstractmethod
-    async def backward(self) -> None:
-
-        if self.page <= 0:
-            raise paginators.PageOutOfBounds
-
-        self.page -= 1
-
-    async def stop(self, delete: bool = True) -> None:
-
-        self.task.cancel()
-        self.looping = False
-
-        if self.message and delete:
-            await self.message.delete()
-            self.message = None
-
-        self.bot.remove_listener(self.on_raw_reaction_add)
-        self.bot.remove_listener(self.on_raw_reaction_remove)
-
-    @abc.abstractmethod
-    async def forward(self) -> None:
-
-        if self.page >= len(self.pages) - 1:
-            raise paginators.PageOutOfBounds
-
-        self.page += 1
-
-    @abc.abstractmethod
-    async def last(self) -> None:
-
-        if (page := len(self.pages) - 1) == self.page:
-            raise paginators.AlreadyOnPage
+    async def change_page(self, *, page: int) -> None:
 
         self.page = page
+        await self.set_page(page=page)
+
+        self.view.page_label.label = f"{page + 1}/{len(self.pages)}"
+
+    @abc.abstractmethod
+    async def paginate(self) -> None:
+        raise NotImplementedError

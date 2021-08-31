@@ -1,14 +1,19 @@
+# Future
+from __future__ import annotations
+
+# Packages
 import discord
 from discord.ext import commands
 
-import config
-from bot import SemiBotomatic
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, converters, exceptions, utils
 
 
 class Tags(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     #
@@ -272,5 +277,5 @@ class Tags(commands.Cog):
         await ctx.reply(embed=embed)
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Tags(bot=bot))

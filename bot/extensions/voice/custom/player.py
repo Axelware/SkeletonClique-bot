@@ -1,26 +1,33 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 import asyncio
 import logging
 import re
 from typing import Optional
 
+# Packages
 import async_timeout
 import discord
 import slate
 import spotify
 import yarl
+from cogs.voice.custom import objects, queue
 from spotify.errors import HTTPException
 
-import config
-from bot import SemiBotomatic
-from cogs.voice.custom import objects, queue
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, enums, exceptions, utils
+
 
 __log__ = logging.getLogger('slate.bases.player')
 
 
 class Player(slate.Player):
 
-    def __init__(self, bot: SemiBotomatic, channel: discord.VoiceChannel) -> None:
+    def __init__(self, bot: SkeletonClique, channel: discord.VoiceChannel) -> None:
         super().__init__(bot, channel)
 
         self.queue = queue.Queue(player=self)

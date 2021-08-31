@@ -1,18 +1,24 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 import collections
 import random
 import urllib.parse
 from typing import Optional, Union
 
+# Packages
 import discord
 from discord.ext import commands
 
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
 from utilities import context, exceptions
 
 
 class Fun(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
         self.RESPONSES = ['Yeah!', 'Hell yeah!!', 'I think so?', 'Maybe, not sure', 'Totally', 'Of course', 'Yes', 'Perhaps...',
@@ -134,5 +140,5 @@ class Fun(commands.Cog):
         await ctx.reply(embed=embed)
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Fun(bot=bot))

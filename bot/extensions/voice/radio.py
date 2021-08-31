@@ -1,16 +1,22 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 import secrets
 
+# Packages
 import discord
 from discord.ext import commands
 
-import config
-from bot import SemiBotomatic
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, exceptions
 
 
 class Radio(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.command(name='authorise', aliases=['auth'])
@@ -54,5 +60,5 @@ class Radio(commands.Cog):
 
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Radio(bot=bot))

@@ -1,28 +1,42 @@
-from abc import ABC
+# Future
+from __future__ import annotations
 
+# Standard Library
+from typing import Any
+
+# Packages
 import dateparser.search
 import pendulum
 from discord.ext import commands
 
-import config
+# My stuff
+from core import colours, emojis
 from utilities import context, exceptions
 
 
-class DatetimeConverter(commands.Converter, ABC):
+SETTINGS = {
+    "DATE_ORDER":               "DMY",
 
-    async def convert(self, ctx: context.Context, argument: str) -> dict:
+    "TIMEZONE":                 "UTC",
+    "RETURN_AS_TIMEZONE_AWARE": False,
 
-        searches = dateparser.search.search_dates(argument, languages=['en'], settings=config.DATEPARSER_SETTINGS)
+    "PREFER_DAY_OF_MONTH":      "current",
+    "PREFER_DATES_FROM":        "future",
+
+    "PARSERS":                  ["relative-time", "absolute-time", "timestamp"]
+}
+
+
+class DatetimeConverter(commands.Converter):
+
+    async def convert(self, ctx: context.Context, argument: str) -> tuple[str, dict[str, pendulum.DateTime]]:
+
+        searches: Any = dateparser.search.search_dates(argument, languages=["en"], settings=SETTINGS)
         if not searches:
-            raise exceptions.ArgumentError('I was unable to find a time and/or date within your query, try to be more explicit or put the time/date first.')
+            raise exceptions.EmbedError(
+                colour=colours.RED,
+                emoji=emojis.CROSS,
+                description="I couldn't find a time or date in that input."
+            )
 
-        data = {'argument': argument, 'found': {}}
-
-        for datetime_phrase, datetime in searches:
-            datetime = pendulum.instance(dt=datetime, tz='UTC')
-            data['found'][datetime_phrase] = datetime
-
-        if not data['found']:
-            raise exceptions.ArgumentError('I was able to find a time and/or date within your query, however it seems to be in the past.')
-
-        return data
+        return argument, {phrase: pendulum.instance(datetime, tz="UTC") for phrase, datetime in searches}

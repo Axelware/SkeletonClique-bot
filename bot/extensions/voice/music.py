@@ -1,13 +1,19 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 from typing import Literal
 
+# Packages
 import discord
 import ksoftapi
 import slate
+from cogs.voice.custom.player import Player
 from discord.ext import commands
 
-import config
-from bot import SemiBotomatic
-from cogs.voice.custom.player import Player
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, exceptions, utils
 
 
@@ -50,7 +56,7 @@ def is_voice_client_playing():
 
 class Music(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     async def load(self) -> None:
@@ -752,5 +758,5 @@ class Music(commands.Cog):
         await ctx.reply(f'Moved `{track.title}` from position `{entry_1}` to position `{entry_2}`.')
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Music(bot=bot))

@@ -1,416 +1,284 @@
-import io
-import multiprocessing
-import sys
-from typing import Callable, Optional, Union
+# Future
+from __future__ import annotations
 
+# Standard Library
+import multiprocessing
+import multiprocessing.connection
+import sys
+from typing import Any, Callable, Literal
+
+# Packages
 import aiohttp
 import bs4
-import discord
 import humanize
 import yarl
 from wand.color import Color
 from wand.image import Image
-from wand.sequence import SingleImage
 
-import config
-from utilities import context, exceptions
-
-
-def adaptive_blur(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
-
-    image.adaptive_blur(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
+# My stuff
+from core import colours, emojis
+from utilities import context, exceptions, utils
 
 
-def adaptive_sharpen(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
+CMD = "bash" if sys.platform == "win32" else "/bin/bash"
 
-    image.adaptive_sharpen(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
-
-
-def blueshift(image: Union[Image, SingleImage], factor: float = 1.5) -> Optional[str]:
-
-    image.blue_shift(factor=factor)
-    return f'Factor: {factor}'
+PixelInterpolateMethods = Literal["undefined", "average", "average9", "average16", "background", "bilinear", "blend", "catrom", "integer", "mesh", "nearest", "spline"]
+NoiseTypes = Literal["undefined", "uniform", "gaussian", "multiplicative_gaussian", "impulse", "laplacian", "poisson", "random"]
 
 
-def blur(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
-
+def blur(image: Image, radius: float, sigma: float) -> None:
     image.blur(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
 
 
-def border(image: Union[Image, SingleImage], colour: str, width: int = 1, height: int = 1) -> Optional[str]:
+def adaptive_blur(image: Image, radius: float, sigma: float) -> None:
+    image.adaptive_blur(radius=radius, sigma=sigma)
+
+
+def sharpen(image: Image, radius: float, sigma: float) -> None:
+    image.adaptive_sharpen(radius=radius, sigma=sigma)
+
+
+def adaptive_sharpen(image: Image, radius: float, sigma: float) -> None:
+    image.adaptive_sharpen(radius=radius, sigma=sigma)
+
+
+def blueshift(image: Image, factor: float) -> None:
+    image.blue_shift(factor=factor)
+
+
+def border(image: Image, colour: str, width: int, height: int) -> None:
 
     with Color(colour) as color:
-        image.border(color=color, width=width, height=height, compose='atop')
-    return f'Colour: {colour} | Width: {width} | Height: {height}'
+        image.border(color=color, width=width, height=height, compose="atop")
 
 
-def edge(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 1) -> Optional[str]:
+def colorize(image: Image, colour: str) -> None:
 
-    image.canny(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
-
-
-def charcoal(image: Union[Image, SingleImage], radius: float, sigma: float) -> Optional[str]:
-
-    image.charcoal(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
-
-
-def colorize(image: Union[Image, SingleImage], colour: str = None) -> Optional[str]:
-
-    with Color(colour) as color, Color('rgb(50%, 50%, 50%)') as alpha:
+    with Color(colour) as color, Color("rgb(50%, 50%, 50%)") as alpha:
         image.colorize(color=color, alpha=alpha)
 
-    return f'Colour: {colour}'
 
-
-def despeckle(image: Union[Image, SingleImage]) -> Optional[str]:
-
+def despeckle(image: Image) -> None:
     image.despeckle()
-    return
 
 
-def floor(image: Union[Image, SingleImage]) -> Optional[str]:
+def floor(image: Image) -> None:
 
-    image.virtual_pixel = 'tile'
-    arguments = (0,            0,            image.width * 0.2, image.height * 0.5,
-                 image.width,  0,            image.width * 0.8, image.height * 0.5,
-                 0,            image.height, image.width * 0.1, image.height,
-                 image.width,  image.height, image.width * 0.9, image.height)
-    image.distort('perspective', arguments)
+    image.virtual_pixel = "tile"
+    image.distort(
+        method="perspective",
+        arguments=(
+            0, 0, image.width * 0.2, image.height * 0.5,
+            image.width, 0, image.width * 0.8, image.height * 0.5,
+            0, image.height, image.width * 0.1, image.height,
+            image.width, image.height, image.width * 0.9, image.height
+        )
+    )
 
-    return
 
+def emboss(image: Image, radius: float, sigma: float) -> None:
 
-def emboss(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
-
-    image.transform_colorspace('gray')
+    image.transform_colorspace("gray")
     image.emboss(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
 
 
-def enhance(image: Union[Image, SingleImage]) -> Optional[str]:
-
+def enhance(image: Image) -> None:
     image.enhance()
-    return
 
 
-def flip(image: Union[Image, SingleImage]) -> Optional[str]:
-
+def flip(image: Image) -> None:
     image.flip()
-    return None
 
 
-def flop(image: Union[Image, SingleImage]) -> Optional[str]:
-
+def flop(image: Image) -> None:
     image.flop()
-    return None
 
 
-def frame(image: Union[Image, SingleImage], matte: str, width: int = 10, height: int = 10, inner_bevel: float = 5, outer_bevel: float = 5) -> Optional[str]:
+def frame(image: Image, matte: str, width: int, height: int, inner_bevel: float, outer_bevel: float) -> None:
 
     with Color(matte) as color:
-        image.frame(matte=color, width=width, height=height, inner_bevel=inner_bevel, outer_bevel=outer_bevel)
-
-    return f'Colour: {matte} | Width: {width} | Height: {height} | Inner bevel: {inner_bevel} | Outer bevel: {outer_bevel}'
+        image.frame(matte=color, width=width, height=height, inner_bevel=inner_bevel, outer_bevel=outer_bevel, compose="atop")
 
 
-def gaussian_blur(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
-
-    image.gaussian_blur(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
+def implode(image: Image, amount: float, method: PixelInterpolateMethods) -> None:
+    image.implode(amount=amount, method=method)
 
 
-def implode(image: Union[Image, SingleImage], amount: float) -> Optional[str]:
-
-    image.implode(amount=amount)
-    return f'Amount: {amount}'
-
-
-def kmeans(image: Union[Image, SingleImage], number_colours: int = None) -> Optional[str]:
-
+def kmeans(image: Image, number_colours: int) -> None:
     image.kmeans(number_colors=number_colours)
-    return f'Number of colours: {number_colours}'
 
 
-def kuwahara(image: Union[Image, SingleImage], radius: float = 1, sigma: float = None) -> Optional[str]:
-
+def kuwahara(image: Image, radius: float, sigma: float) -> None:
     image.kuwahara(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
 
 
-def motion_blur(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0, angle: float = 0) -> Optional[str]:
-
+def motion_blur(image: Image, radius: float, sigma: float, angle: float) -> None:
     image.motion_blur(radius=radius, sigma=sigma, angle=angle)
-    return f'Radius: {radius} | Sigma: {sigma} | Angle: {angle}'
 
 
-def negate(image: Union[Image, SingleImage]) -> Optional[str]:
-
-    image.negate(channel='rgb')
-    return
+def negate(image: Image) -> None:
+    image.negate(channel="rgb")
 
 
-def noise(image: Union[Image, SingleImage], method: str = 'uniform', attenuate: float = 1) -> Optional[str]:
-
-    image.noise(method, attenuate=attenuate)
-    return f'Method: {method} | Attenuate: {attenuate}'
+def noise(image: Image, noise_type: NoiseTypes, attenuate: float) -> None:
+    image.noise(noise_type=noise_type, attenuate=attenuate)
 
 
-def oil_paint(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
-
+def oil_paint(image: Image, radius: float, sigma: float) -> None:
     image.oil_paint(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
 
 
-def polaroid(image: Union[Image, SingleImage], angle: float = 0, caption: str = None) -> Optional[str]:
-
-    image.polaroid(angle=angle, caption=caption)
-    return f'Angle: {angle} | Caption: {caption}'
+def polaroid(image: Image, angle: float, caption: str, method: PixelInterpolateMethods) -> None:
+    image.polaroid(angle=angle, caption=caption, method=method)
 
 
-def rotate(image: Union[Image, SingleImage], degree: float, reset: bool = True) -> Optional[str]:
-
-    image.rotate(degree=degree, reset_coords=reset)
-    return f'Degree: {degree} | Reset: {reset}'
+def rotate(image: Image, degree: float, reset_coords: bool) -> None:
+    image.rotate(degree=degree, reset_coords=reset_coords)
 
 
-def sepia_tone(image: Union[Image, SingleImage], threshold: float = 0.8) -> Optional[str]:
-
+def sepia_tone(image: Image, threshold: float) -> None:
     image.sepia_tone(threshold=threshold)
-    return f'Threshold: {threshold}'
 
 
-def sharpen(image: Union[Image, SingleImage], radius: float = 0, sigma: float = 0) -> Optional[str]:
-
-    image.adaptive_sharpen(radius=radius, sigma=sigma)
-    return f'Radius: {radius} | Sigma: {sigma}'
+def solarize(image: Image, threshold: float) -> None:
+    image.solarize(threshold=threshold, channel="rgb")
 
 
-def solarize(image: Union[Image, SingleImage], threshold: float = 0.5) -> Optional[str]:
-
-    image.solarize(threshold=threshold, channel='rgb')
-    return f'Threshold: {threshold}'
+def spread(image: Image, radius: float, method: PixelInterpolateMethods) -> None:
+    image.spread(radius=radius, method=method)
 
 
-def spread(image: Union[Image, SingleImage], radius: float) -> Optional[str]:
-
-    image.spread(radius=radius)
-    return f'Radius: {radius}'
+def swirl(image: Image, degree: float, method: PixelInterpolateMethods) -> None:
+    image.swirl(degree=degree, method=method)
 
 
-def swirl(image: Union[Image, SingleImage], degree: float) -> Optional[str]:
-
-    image.swirl(degree=degree)
-    return f'Degree: {degree}'
-
-
-def transparentize(image: Union[Image, SingleImage], transparency: float) -> Optional[str]:
-
+def transparentize(image: Image, transparency: float) -> None:
     image.transparentize(transparency=transparency)
-    return f'Transparency: {transparency}'
 
 
-def transpose(image: Union[Image, SingleImage]) -> Optional[str]:
-
-    image.transpose()
-    return
-
-
-def transverse(image: Union[Image, SingleImage]) -> Optional[str]:
-
-    image.transverse()
-    return
-
-
-def wave(image: Union[Image, SingleImage]) -> Optional[str]:
-
-    image.wave(amplitude=image.height / 32, wave_length=image.width / 4)
-    return
-
-
-def cube(image: Union[Image, SingleImage]) -> Optional[str]:
-
-    def d3(x: int):
-        return int(x / 3)
-
-    image.resize(1000, 1000)
-    image.alpha_channel = 'opaque'
-
-    top = Image(image)
-    top.resize(d3(1000), d3(860))
-    top.shear(x=-30, background=Color('none'))
-    top.rotate(degree=-30)
-
-    right = Image(image)
-    right.resize(d3(1000), d3(860))
-    right.shear(background=Color('none'), x=30)
-    right.rotate(degree=-30)
-
-    left = Image(image)
-    left.resize(d3(1000), d3(860))
-    left.shear(background=Color('none'), x=-30)
-    left.rotate(degree=30)
-
-    image.resize(width=d3(3000 - 450), height=d3(860 - 100) * 3)
-    image.gaussian_blur(sigma=5)
-
-    image.composite(top, left=d3(500 - 250), top=d3(0 - 230) + d3(118))
-    image.composite(right, left=d3(1000 - 250) - d3(72), top=d3(860 - 230))
-    image.composite(left, left=d3(0 - 250) + d3(68), top=d3(860 - 230))
-
-    top.close()
-    right.close()
-    left.close()
-
-    image.crop(left=80, top=40, right=665, bottom=710)
-    return ''
-
-
-IMAGE_OPERATIONS = {
-    'adaptive_blur': adaptive_blur,
-    'adaptive_sharpen': adaptive_sharpen,
-    'blueshift': blueshift,
-    'blur': blur,
-    'border': border,
-    'edge': edge,
-    'charcoal': charcoal,
-    'colorize': colorize,
-    'despeckle': despeckle,
-    'floor': floor,
-    'emboss': emboss,
-    'enhance': enhance,
-    'flip': flip,
-    'flop': flop,
-    'frame': frame,
-    'gaussian_blur': gaussian_blur,
-    'implode': implode,
-    'kmeans': kmeans,
-    'kuwahara': kuwahara,
-    'motion_blur': motion_blur,
-    'negate': negate,
-    'noise': noise,
-    'oil_paint': oil_paint,
-    'polaroid': polaroid,
-    'rotate': rotate,
-    'sepia_tone': sepia_tone,
-    'sharpen': sharpen,
-    'solarize': solarize,
-    'spread': spread,
-    'swirl': swirl,
-    'transparentize': transparentize,
-    'transpose': transpose,
-    'transverse': transverse,
-    'wave': wave,
-    'cube': cube,
-}
-
-MAX_CONTENT_SIZE = (2 ** 20) * 25
-VALID_CONTENT_TYPES = ['image/gif', 'image/heic', 'image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml']
-COMMON_GIF_SITES = ['tenor.com', 'giphy.com']
-
-
-def _do_edit_image(child_pipe: multiprocessing.Pipe, edit_function: Callable, image_bytes: bytes, **kwargs):
-
-    try:
-
-        image_buffer = io.BytesIO(image_bytes)
-        image_edited_buffer = io.BytesIO()
-
-        with Image(file=image_buffer) as image:
-
-            image_format = image.format
-            if image_format != 'GIF':
-                text = edit_function(image, **kwargs)
-            else:
-                image.coalesce()
-                for x in image.sequence:
-                    with x as image_frame:
-                        text = edit_function(image_frame, **kwargs)
-                image.optimize_transparency()
-
-            image.save(file=image_edited_buffer)
-
-        image_edited_buffer.seek(0)
-
-        child_pipe.send({
-            'image': image_edited_buffer,
-            'image_format': image_format,
-            'text': text
-        })
-
-        image_buffer.close()
-        image_edited_buffer.close()
-
-    except Exception as e:
-        print(e, file=sys.stderr)
-        child_pipe.send(exceptions.ImageError())
-
-
-async def _request_image_bytes(*, ctx: context.Context, url: str) -> bytes:
-
-    async with ctx.bot.session.get(url) as request:
-
-        if yarl.URL(url).host in COMMON_GIF_SITES:
-            page = bs4.BeautifulSoup(await request.text(), features='html.parser')
-            if (url := page.find("meta",  property="og:url")) is not None:
-                return await _request_image_bytes(ctx=ctx, url=url['content'])
-
-        if request.status != 200:
-            raise exceptions.ImageError('Something went wrong while loading that image, check the url or try again later.')
-        if request.headers.get('Content-Type') not in VALID_CONTENT_TYPES:
-            raise exceptions.ImageError('That image format is not allowed. Valid formats include `gif`, `heic`, `jpeg`, `png`, `webp`, `avif` and `svg`.')
-        if (content_length := request.headers.get('Content-Length', 0)) and int(content_length) > MAX_CONTENT_SIZE:
-            raise exceptions.ImageError(f'That image was too big to edit, please keep to a `{humanize.naturalsize(MAX_CONTENT_SIZE)}` maximum')
-
-        return await request.read()
-
-
-async def _upload_image(*, ctx: context.Context, image: io.BytesIO, image_format: str, text: str = None) -> discord.Embed:
-
-    data = aiohttp.FormData()
-    data.add_field('file', image, filename=f'image.{image_format.lower()}')
-
-    async with ctx.bot.session.post(config.CDN_UPLOAD_URL, headers=config.CDN_HEADERS, data=data) as response:
-
-        if response.status == 413:
-            raise exceptions.ImageError('The image produced was too large to upload.')
-
-        post = await response.json()
-
-    embed = discord.Embed(colour=ctx.colour)
-    embed.set_image(url=f'https://media.mrrandom.xyz/{post.get("filename")}')
-    if text:
-        embed.set_footer(text=text)
-
-    image.close()
-    return embed
+def wave(image: Image, method: PixelInterpolateMethods) -> None:
+    image.wave(amplitude=image.height / 32, wave_length=image.width / 5, method=method)
 
 
 #
 
 
-async def edit_image(*, ctx: context.Context, edit_type: str,  url: str, **kwargs) -> discord.Embed:
+MAX_CONTENT_SIZE = (2 ** 20) * 25
+VALID_CONTENT_TYPES = ["image/gif", "image/heic", "image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"]
+COMMON_GIF_SITES = ["tenor.com", "giphy.com", "gifer.com"]
 
-    image_bytes = await _request_image_bytes(ctx=ctx, url=url)
-    parent_pipe, child_pipe = multiprocessing.Pipe()
 
-    process = multiprocessing.Process(target=_do_edit_image, daemon=True, args=(child_pipe, IMAGE_OPERATIONS[edit_type], image_bytes), kwargs=kwargs)
+async def request_image_bytes(*, session: aiohttp.ClientSession, url: str) -> bytes:
+
+    async with session.get(url) as request:
+
+        if yarl.URL(url).host in COMMON_GIF_SITES:
+            page = bs4.BeautifulSoup(await request.text(), features="html.parser")
+            if (tag := page.find("meta", property="og:url")) is not None:
+                return await request_image_bytes(session=session, url=tag["content"])
+
+        if request.status != 200:
+            raise exceptions.EmbedError(
+                colour=colours.RED,
+                emoji=emojis.CROSS,
+                description="I was unable to fetch that image. Check the URL or try again later."
+            )
+
+        if request.headers.get("Content-Type") not in VALID_CONTENT_TYPES:
+            raise exceptions.EmbedError(
+                colour=colours.RED,
+                emoji=emojis.CROSS,
+                description="That image format is not allowed, valid formats are **GIF**, **HEIC**, **JPEG**, **PNG**, **WEBP**, **AVIF** and **SVG**."
+            )
+
+        if int((request.headers.get("Content-Length") or "0")) > MAX_CONTENT_SIZE:
+            raise exceptions.EmbedError(
+                colour=colours.RED,
+                emoji=emojis.CROSS,
+                description=f"That image is too big to edit, maximum file size is **{humanize.naturalsize(MAX_CONTENT_SIZE)}**."
+            )
+
+        return await request.read()
+
+
+async def edit_image(ctx: context.Context, edit_function: Callable[..., Any], url: str, **kwargs) -> None:
+
+    embed = utils.embed(
+        colour=colours.GREEN,
+        emoji="<a:loading:872608197314220154>",
+        description="| Processing image"
+    )
+    message = await ctx.reply(embed=embed)
+
+    receiving_pipe, sending_pipe = multiprocessing.Pipe(duplex=False)
+    image_bytes = await request_image_bytes(session=ctx.bot.session, url=url)
+
+    process = multiprocessing.Process(target=do_edit_image, daemon=True, args=(edit_function, image_bytes, sending_pipe), kwargs=kwargs)
     process.start()
 
-    data = await ctx.bot.loop.run_in_executor(None, parent_pipe.recv)
-    if isinstance(data, (exceptions.ImageError, EOFError)):
-        process.terminate()
-        raise exceptions.ImageError('Something went wrong while trying to edit that image.')
+    data = await ctx.bot.loop.run_in_executor(None, receiving_pipe.recv)
 
     process.join()
 
+    receiving_pipe.close()
+    sending_pipe.close()
+    process.terminate()
     process.close()
-    parent_pipe.close()
-    child_pipe.close()
 
-    embed = await _upload_image(ctx=ctx, image=data['image'], image_format=data['image_format'], text=data['text'])
-    return embed
+    if data is ValueError or data is EOFError:
+
+        embed = utils.embed(
+            colour=colours.RED,
+            emoji=emojis.CROSS,
+            description="Image edit failed."
+        )
+        await message.edit(embed=embed)
+
+        raise exceptions.EmbedError(
+            colour=colours.RED,
+            emoji=emojis.CROSS,
+            description="Something went wrong while editing that image, try again."
+        )
+
+    url = await utils.upload_file(ctx.bot.session, file_bytes=data[0], file_format=data[1])
+    await ctx.reply(url)
+
+    embed = utils.embed(
+        colour=colours.GREEN,
+        emoji=emojis.TICK,
+        description="Image edit success."
+    )
+    await message.edit(embed=embed)
+
+    del data
+
+
+def do_edit_image(edit_function: Callable[..., Any], image_bytes: bytes, pipe: multiprocessing.connection.Connection, **kwargs) -> None:
+
+    try:
+        with Image(blob=image_bytes) as image, Color("transparent") as colour:
+
+            if image.format != "GIF":
+                image.background_color = colour
+                edit_function(image, **kwargs)
+
+            else:
+                image.coalesce()
+                image.iterator_reset()
+
+                image.background_color = colour
+                edit_function(image, **kwargs)
+                while image.iterator_next():
+                    image.background_color = colour
+                    edit_function(image, **kwargs)
+
+                image.optimize_transparency()
+
+            edited_image_format = image.format
+            edited_image_bytes = image.make_blob()
+
+            pipe.send((edited_image_bytes, edited_image_format))
+
+    except Exception as e:
+        print(e, file=sys.stderr)
+        pipe.send(ValueError)

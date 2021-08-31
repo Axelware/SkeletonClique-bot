@@ -1,3 +1,7 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 import collections
 import contextlib
 import logging
@@ -6,15 +10,18 @@ import sys
 import traceback
 from typing import Any, Optional, Union
 
+# Packages
 import discord
 import pendulum
 import slate
 from discord.ext import commands
 from discord.ext.alternatives.literal_converter import BadLiteralArgument
 
-import config
-from bot import SemiBotomatic
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, enums, exceptions, utils
+
 
 __log__ = logging.getLogger(__name__)
 PartialMessage = collections.namedtuple('PartialMessage', 'id created_at guild author channel content jump_url pinned attachments embeds')
@@ -22,7 +29,7 @@ PartialMessage = collections.namedtuple('PartialMessage', 'id created_at guild a
 
 class Events(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
         self.BAD_ARGUMENT_ERRORS = {
@@ -562,5 +569,5 @@ class Events(commands.Cog):
         #await self.bot.IMPORTANT_LOG.send(embed=embed, username='Logs: Users', avatar_url=utils.avatar(person=after))
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Events(bot=bot))

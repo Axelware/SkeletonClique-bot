@@ -1,13 +1,18 @@
+# Future
+from __future__ import annotations
+
+# Packages
 import discord
 from discord.ext import commands
 
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
 from utilities import context, exceptions
 
 
 class Todo(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.group(name='todo', aliases=['todos'], invoke_without_command=True)
@@ -128,5 +133,5 @@ class Todo(commands.Cog):
         await ctx.reply(f'Edited content of todo with id `{todo_id}`.')
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Todo(bot=bot))

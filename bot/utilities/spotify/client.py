@@ -1,10 +1,14 @@
+# Future
 from __future__ import annotations
 
+# Standard Library
 import json
 import math
 
-import config
+# My stuff
+from core import config
 from utilities.spotify import exceptions, objects, utils
+
 
 EXCEPTIONS = {
     400: exceptions.BadRequest,

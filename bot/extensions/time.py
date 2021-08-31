@@ -1,17 +1,22 @@
+# Future
+from __future__ import annotations
+
+# Packages
 import discord
 import pendulum
 import pendulum.tz.zoneinfo.exceptions
 import rapidfuzz
 from discord.ext import commands
 
-import config
-from bot import SemiBotomatic
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, converters, exceptions, utils
 
 
 class Time(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.command(name='times')
@@ -298,5 +303,5 @@ class Time(commands.Cog):
         await ctx.paginate_embed(entries=entries, per_page=5, title=f'{ctx.author}\'s reminders:')
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Time(bot=bot))

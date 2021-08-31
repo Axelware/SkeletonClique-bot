@@ -1,21 +1,27 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 import collections
 import sys
+import time
 
+# Packages
 import discord
 import humanize
 import pkg_resources
 import setproctitle
 from discord.ext import commands
 
-import config
-import time
-from bot import SemiBotomatic
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, converters, exceptions
 
 
 class Dev(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.is_owner()
@@ -162,5 +168,5 @@ class Dev(commands.Cog):
         await ctx.reply(f'Removed user `{user.id}` from the blacklist.')
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Dev(bot=bot))

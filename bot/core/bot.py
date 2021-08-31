@@ -1,11 +1,19 @@
-import collections
-import logging
-import time
-from typing import Optional, Union
+# Future
+from __future__ import annotations
 
+# Standard Library
+import collections
+import copy
+import logging
+import re
+import time
+import traceback
+from typing import Any, Callable, Optional, Type
+
+# Packages
 import aiohttp
+import aioredis
 import aioscheduler
-import aredis
 import asyncpg
 import discord
 import ksoftapi
@@ -14,167 +22,162 @@ import psutil
 import slate
 import spotify
 from discord.ext import commands
+# noinspection PyUnresolvedReferences
+from discord.ext.alternatives import converter_dict
+from pendulum.tz.timezone import Timezone
 
-import config
-from cogs.web import main
-from utilities import context, help, managers  # skipcq: PYL-W0622
-
-__log__ = logging.getLogger(__name__)
+# My stuff
+from core import config
+from utilities import checks, context, converters, enums, help, managers, objects
 
 
-class SemiBotomatic(commands.AutoShardedBot):
+__log__: logging.Logger = logging.getLogger("bot")
+
+CONVERTERS = {
+    objects.Reminder:         converters.ReminderConverter,
+    enums.ReminderRepeatType: converters.ReminderRepeatTypeConverter,
+    Timezone:                 converters.TimezoneConverter
+}
+
+
+class SkeletonClique(commands.AutoShardedBot):
+
+    converters: dict[type, Callable[..., Any]]
 
     def __init__(self) -> None:
         super().__init__(
-                command_prefix=commands.when_mentioned_or(config.PREFIX), help_command=help.HelpCommand(), owner_ids=config.OWNER_IDS, intents=discord.Intents.all(),
-                activity=discord.Activity(type=3, name='all of you'), max_messages=10000,
-                allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
+            status=discord.Status.dnd,
+            activity=discord.Activity(type=discord.ActivityType.playing, name="aaaaa!"),
+            allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False),
+            help_command=help.HelpCommand(),
+            intents=discord.Intents.all(),
+            command_prefix=commands.when_mentioned_or(config.PREFIX),
+            case_insensitive=True,
+            owner_ids=config.OWNER_IDS,
         )
+        self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
-        self.text_permissions = discord.Permissions(read_messages=True, send_messages=True, embed_links=True, attach_files=True, read_message_history=True, add_reactions=True,
-                                                    external_emojis=True)
-        self.voice_permissions = discord.Permissions(read_messages=True, send_messages=True, embed_links=True, attach_files=True, read_message_history=True, add_reactions=True,
-                                                     external_emojis=True, connect=True, speak=True, use_voice_activation=True)
+        self.session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self.process: psutil.Process = psutil.Process()
+        self.socket_stats: collections.Counter = collections.Counter()
 
-        self.session = aiohttp.ClientSession()
-        self.start_time = time.time()
-        self.process = psutil.Process()
-        self.socket_stats = collections.Counter()
-
-        self.ERROR_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.ERROR_WEBHOOK_URL)
-        self.DMS_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.DM_WEBHOOK_URL)
-        self.COMMON_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.COMMON_LOG_WEBHOOK_URL)
-        self.IMPORTANT_LOG = discord.Webhook.from_url(adapter=discord.AsyncWebhookAdapter(self.session), url=config.IMPORTANT_LOG_WEBHOOK_URL)
-
-        self.first_ready: bool = True
+        self.ERROR_LOG: discord.Webhook = discord.Webhook.from_url(session=self.session, url=config.ERROR_WEBHOOK_URL)
+        self.DMS_LOG: discord.Webhook = discord.Webhook.from_url(session=self.session, url=config.DM_WEBHOOK_URL)
+        self.COMMON_LOG: discord.Webhook = discord.Webhook.from_url(session=self.session, url=config.COMMON_LOG_WEBHOOK_URL)
+        self.IMPORTANT_LOG: discord.Webhook = discord.Webhook.from_url(session=self.session, url=config.IMPORTANT_LOG_WEBHOOK_URL)
 
         self.db: Optional[asyncpg.Pool] = None
-        self.redis: Optional[aredis.StrictRedis] = None
-        self.semi_botomatic_web: Optional[main.SemiBotomaticWeb] = None
+        self.redis: Optional[aioredis.Redis] = None
 
+        self.scheduler: aioscheduler.Manager = aioscheduler.Manager()
         self.mystbin: mystbin.Client = mystbin.Client(session=self.session)
-        self.ksoft: Optional[ksoftapi.Client] = ksoftapi.Client(config.KSOFT_TOKEN)
-        self.slate: Optional[slate.Client] = slate.Client(bot=self, session=self.session)
-        self.spotify: Optional[spotify.Client] = spotify.Client(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
-        self.spotify_http: Optional[spotify.HTTPClient] = spotify.HTTPClient(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
-        self.scheduler: aioscheduler.Manager = aioscheduler.Manager(2)
+        self.ksoft: ksoftapi.Client = ksoftapi.Client(api_key=config.KSOFT_TOKEN)
+        self.spotify: spotify.Client = spotify.Client(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
+        self.spotify_http: spotify.HTTPClient = spotify.HTTPClient(client_id=config.SPOTIFY_CLIENT_ID, client_secret=config.SPOTIFY_CLIENT_SECRET)
+        self.slate: Type[slate.NodePool] = slate.NodePool
 
         self.user_manager: managers.UserManager = managers.UserManager(bot=self)
         self.guild_manager: managers.GuildManager = managers.GuildManager(bot=self)
 
-    async def get_context(self, message: discord.Message, *, cls=context.Context) -> context.Context:
-        return await super().get_context(message, cls=cls)
+        self.first_ready: bool = True
+        self.start_time: float = time.time()
 
-    async def is_owner(self, user: Union[discord.User, discord.Member]) -> bool:
+        self.add_check(checks.global_check, call_once=True)
+
+        self.converters |= CONVERTERS
+
+    #
+
+    async def process_commands(self, message: discord.Message) -> None:
+
+        if message.author.bot:
+            return
+
+        ctx = await self.get_context(message)
+
+        if ctx.command and ctx.command.name in ["play", "yt-music", "soundcloud", "search", "play-now", "play-next", "rolecounts"]:
+
+            content = message.content
+            start = content.index(ctx.invoked_with) + len(ctx.invoked_with) + 1
+            try:
+                end = content.index(" --")
+            except ValueError:
+                end = len(content)
+
+            content = (content[:start] + ('"' + content[start:end] + '"') + content[end:]).replace('""', "")
+
+            message = copy.copy(message)
+            message.content = re.sub(r"--([^\s]+)\s*", r"--\1 true ", content)
+
+            ctx = await self.get_context(message)
+
+        await self.invoke(ctx)
+
+    async def get_context(self, message: discord.Message, *, cls: Type[context.Context] = context.Context) -> context.Context:
+        return await super().get_context(message=message, cls=cls)
+
+    async def is_owner(self, user: discord.User | discord.Member) -> bool:
         return user.id in config.OWNER_IDS
 
-    async def get_prefix(self, message: discord.Message) -> list[str]:
+    #
 
-        if not message.guild:
-            return commands.when_mentioned_or(config.PREFIX, '')(self, message)
-
-        return commands.when_mentioned_or(config.PREFIX)(self, message)
-
-    async def start(self, *args, **kwargs) -> None:
+    async def start(self, token: str, *, reconnect: bool = True) -> None:
 
         try:
-            __log__.debug('[POSTGRESQL] Attempting connection.')
+            __log__.debug("[POSTGRESQL] Attempting connection.")
             db = await asyncpg.create_pool(**config.POSTGRESQL, max_inactive_connection_lifetime=0)
         except Exception as e:
-            __log__.critical(f'[POSTGRESQL] Error while connecting.\n{e}\n')
-            print(f'\n[POSTGRESQL] Error while connecting: {e}')
-            raise ConnectionError
+            __log__.critical(f"[POSTGRESQL] Error while connecting.\n{e}\n")
+            raise ConnectionError()
         else:
-            __log__.info('[POSTGRESQL] Successful connection.')
-            print('\n[POSTGRESQL] Successful connection.')
+            __log__.info("[POSTGRESQL] Successful connection.")
             self.db = db
 
         try:
-            __log__.debug('[REDIS] Attempting connection')
-            redis = aredis.StrictRedis(**config.REDIS)
-            await redis.set('connected', 0)
-        except (aredis.ConnectionError, aredis.ResponseError) as e:
-            __log__.critical(f'[REDIS] Error while connecting.\n{e}\n')
-            print(f'[REDIS] Error while connecting: {e}')
+            __log__.debug("[REDIS] Attempting connection.")
+            redis = aioredis.from_url(url=config.REDIS, decode_responses=True, retry_on_timeout=True)
+            await redis.ping()
+        except (aioredis.ConnectionError, aioredis.ResponseError) as e:
+            __log__.critical(f"[REDIS] Error while connecting.\n{e}\n")
             raise ConnectionError()
         else:
-            __log__.info('[REDIS] Successful connection.')
-            print(f'[REDIS] Successful connection to Redis DB number \'{config.REDIS["db"]}\'. \n')
+            __log__.info("[REDIS] Successful connection.")
             self.redis = redis
 
         for extension in config.EXTENSIONS:
             try:
                 self.load_extension(extension)
-                __log__.info(f'[EXTENSIONS] Loaded - {extension}')
-                print(f'[EXTENSIONS] Loaded - {extension}')
+                __log__.info(f"[EXTENSIONS] Loaded - {extension}")
             except commands.ExtensionNotFound:
-                __log__.warning(f'[EXTENSIONS] Extension not found - {extension}')
-                print(f'\n[EXTENSIONS] Extension not found - {extension}\n')
+                __log__.warning(f"[EXTENSIONS] Extension not found - {extension}")
             except commands.NoEntryPointError:
-                __log__.warning(f'[EXTENSIONS] No entry point - {extension}')
-                print(f'\n[EXTENSIONS] No entry point - {extension}\n')
+                __log__.warning(f"[EXTENSIONS] No entry point - {extension}")
             except commands.ExtensionFailed as error:
-                __log__.warning(f'[EXTENSIONS] Failed - {extension} - Reason: {error}')
-                print(f'\n[EXTENSIONS] Failed - {extension} - Reason: {error}\n')
+                __log__.warning(f"[EXTENSIONS] Failed - {extension} - Reason: {traceback.print_exception(type(error), error, error.__traceback__)}")
 
-        print('')
-        await super().start(*args, **kwargs)
+        await super().start(token=token, reconnect=reconnect)
 
     async def close(self) -> None:
 
-        __log__.info('[BOT] Closing aiohttp client sessions.')
-        print('\n[CS] Closing aiohttp client sessions.')
         await self.session.close()
         await self.ksoft.close()
         await self.spotify.close()
         await self.spotify_http.close()
 
-        __log__.info('[BOT] Closing bot down.')
-        print('[BOT] Closing bot down.')
+        if self.db:
+            await self.db.close()
+        if self.redis:
+            await self.redis.close()
 
-        __log__.info('[BOT] Closing database connection.')
-        print('[DB] Closing database connection.')
-        await self.db.close()
-
-        __log__.info('[BOT] Bot has shutdown.')
-        print('\nBye bye!')
         await super().close()
 
     #
 
     async def on_ready(self) -> None:
 
-        if self.first_ready is False:
-            return
-        self.first_ready = False
+        if self.first_ready is True:
+            self.first_ready = False
 
-        self.add_check(self.command_check)
         self.scheduler.start()
 
-        self.semi_botomatic_web = await main.load(bot=self)
-        await self.user_manager.load()
-        await self.guild_manager.load()
-
-        for cog in self.cogs.values():
-            if hasattr(cog, 'load'):
-                await cog.load()
-
-    async def command_check(self, ctx: context.Context) -> bool:
-
-        if ctx.user_config.blacklisted is True and ctx.command.qualified_name not in {'help', 'support'}:
-            raise commands.CheckFailure(f'You are blacklisted from using this bot with the reason:\n\n`{ctx.user_config.blacklisted_reason}`')
-
-        needed_permissions = {permission: value for permission, value in self.text_permissions if value is True}
-        current_permissions = dict(ctx.me.permissions_in(ctx.channel))
-        if not ctx.guild:
-            current_permissions['read_messages'] = True
-
-        if ctx.command.cog and ctx.command.cog in {self.get_cog('Music')}:  # skipcq: PTC-W0048
-            if (channel := getattr(ctx.author.voice, 'channel', None)) is not None:
-                needed_permissions = {permission: value for permission, value in self.voice_permissions if value is True}
-                current_permissions.update({permission: value for permission, value in ctx.me.permissions_in(channel) if value is True})
-
-        if missing := [permissions for permissions, value in needed_permissions.items() if current_permissions[permissions] != value]:
-            raise commands.BotMissingPermissions(missing)
-
-        return True
+        await self.cogs["Voice"].load()

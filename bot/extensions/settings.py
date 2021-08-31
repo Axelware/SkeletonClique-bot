@@ -1,16 +1,22 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 from typing import Literal
 
+# Packages
 import discord
 from discord.ext import commands
 
-import config
-from bot import SemiBotomatic
+# My stuff
+from core import config
+from core.bot import SkeletonClique
 from utilities import context, enums, exceptions
 
 
 class Settings(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.group(name='settings', aliases=['config'], invoke_without_command=True)
@@ -106,5 +112,5 @@ class Settings(commands.Cog):
             await ctx.reply(f'Set this servers embed size to `{ctx.guild_config.embed_size.name.title()}`.')
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Settings(bot=bot))
