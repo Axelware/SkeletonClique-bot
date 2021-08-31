@@ -1,11 +1,16 @@
+# Future
 from __future__ import annotations
 
+# Standard Library
 import time
 from typing import TYPE_CHECKING
 
+# My stuff
 from utilities.spotify import exceptions
 
+
 if TYPE_CHECKING:
+    # My stuff
     from utilities.spotify.client import Client
 
 TOKEN_URL = 'https://accounts.spotify.com/api/token'

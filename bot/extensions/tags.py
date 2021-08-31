@@ -6,9 +6,13 @@ import discord
 from discord.ext import commands
 
 # My stuff
-from core import config
+from core import colours, config, emojis, values
 from core.bot import SkeletonClique
 from utilities import context, converters, exceptions, utils
+
+
+def setup(bot: SkeletonClique) -> None:
+    bot.add_cog(Tags(bot=bot))
 
 
 class Tags(commands.Cog):

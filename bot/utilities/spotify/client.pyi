@@ -3,6 +3,7 @@ from typing import Optional, Type, Union
 from core.bot import SkeletonClique
 from utilities.spotify import exceptions, objects
 
+
 BASE_ENDPOINT: str
 EXCEPTIONS: dict[int, Type[exceptions.SpotifyException]]
 SCOPES: list[str]

@@ -1,4 +1,3 @@
-
 # Future
 from __future__ import annotations
 
@@ -11,8 +10,13 @@ import discord
 from discord.ext import commands
 
 # My stuff
+from core import colours, emojis
 from core.bot import SkeletonClique
-from utilities import context, exceptions, objects, utils
+from utilities import context, converters, enums, exceptions, utils
+
+
+def setup(bot: SkeletonClique) -> None:
+    bot.add_cog(Economy(bot=bot))
 
 
 class Economy(commands.Cog):
@@ -20,90 +24,94 @@ class Economy(commands.Cog):
     def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
+    # Events
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
 
-        if message.author.bot:
+        if message.guild is None or message.author.bot is True:
             return
 
-        if await self.bot.redis.exists(f'{message.author.id}_xp_gain') is True:
+        if bool(await self.bot.redis.exists(f"{message.author.id}_{message.guild.id}_xp_gain")) is True:
             return
 
-        if not (user_config := self.bot.user_manager.get_config(message.author.id)):
-            user_config = await self.bot.user_manager.create_config(message.author.id)
+        user_config = await self.bot.user_manager.get_config(message.author.id)
+        member_config = await user_config.get_member_config(message.guild.id)
 
         xp = random.randint(10, 25)
 
-        if xp >= user_config.next_level_xp:
-            self.bot.dispatch('xp_level_up', user_config, message)
+        if xp >= member_config.needed_xp and user_config.notifications.level_ups:
+            await message.reply(f"You are now level `{member_config.level}`!")
 
-        user_config.change_xp(xp)
-        await self.bot.redis.setex(name=f'{message.author.id}_xp_gain', time=60, value=None)
-
-    @commands.Cog.listener()
-    async def on_xp_level_up(self, user_config: objects.UserConfig, message: discord.Message) -> None:
-
-        if not user_config.notifications.level_ups:
-            return
-
-        await message.reply(f'You are now level `{user_config.level}`!')
+        await member_config.change_xp(xp, operation=enums.Operation.ADD)
+        await self.bot.redis.setex(name=f"{message.author.id}_{message.guild.id}_xp_gain", time=60, value="")
 
     #
 
-    @commands.command(name='level', aliases=['xp', 'score', 'rank'])
-    async def level(self, ctx: context.Context, *, member: discord.Member = None) -> None:
+    @commands.command(name="level", aliases=["xp", "score", "rank"], ignore_extra=False)
+    async def level(self, ctx: context.Context, person: converters.PersonConverter = utils.MISSING) -> None:
         """
-        Display yours, or someone else's level / xp information.
+        Displays yours, or another persons xp, rank, and level information.
 
-        `member`: The member of which to get the level for. Can be their ID, Username, Nickname or @Mention. Defaults to you.
+        **person**: The person to get level information for. Can be their ID, Username, Nickname or @Mention. Defaults to you.
         """
 
-        if not member:
-            member = ctx.author
+        user = person or ctx.author
 
         async with ctx.typing():
-            file = await self.bot.user_manager.create_level_card(member.id, guild_id=getattr(ctx.guild, 'id', None))
-            await ctx.reply(file=file)
+            buffer = await self.bot.user_manager.create_level_card(guild_id=ctx.guild.id, user_id=user.id)
+            url = await utils.upload_file(self.bot.session, file_bytes=buffer, file_format="png")
+            buffer.close()
 
-    @commands.group(name='leaderboard', aliases=['lb'], invoke_without_command=True)
+            await ctx.reply(url)
+
+    @commands.group(name="leaderboard", aliases=["lb"], invoke_without_command=True)
     async def leaderboard(self, ctx: context.Context) -> None:
         """
-        Display the leaderboard for xp, rank, and level.
+        Displays the leaderboard for ranks, xp and levels.
         """
 
-        boards = (len(list(filter(
-                lambda user_config: (self.bot.get_user(user_config.id) if not ctx.guild else ctx.guild.get_member(user_config.id)) is not None and getattr(user_config, 'xp') != 0,
-                self.bot.user_manager.configs.values()
-        ))) // 10) + 1
+        pages = ((await self.bot.db.fetchrow("SELECT count(*) FROM members WHERE guild_id = $1", ctx.guild.id))["count"] // 10) + 1
+        await ctx.paginate_file(
+            entries=[functools.partial(self.bot.user_manager.create_leaderboard, guild_id=ctx.guild.id, page=page + 1) for page in range(pages)]
+        )
 
-        entries = [functools.partial(self.bot.user_manager.create_leaderboard, guild_id=getattr(ctx.guild, 'id', None)) for _ in range(boards)]
-        await ctx.paginate_file(entries=entries)
-
-    @leaderboard.command(name='text')
+    @leaderboard.command(name="text")
     async def leaderboard_text(self, ctx: context.Context) -> None:
         """
-        Display the xp leaderboard in a text table.
+        Displays the leaderboard in a text table.
         """
 
-        if not (leaderboard := self.bot.user_manager.leaderboard()):
-            raise exceptions.ArgumentError('There are no leaderboard stats.')
+        leaderboard = await self.bot.user_manager.leaderboard(guild_id=ctx.guild.id, page=0, limit=None)
+        if not (member_config := discord.utils.find(lambda r: r['user_id'] == ctx.author.id, leaderboard)):
+            raise exceptions.EmbedError(
+                colour=colours.RED,
+                emoji=emojis.CROSS,
+                description="Something went wrong while fetching the leaderboard."
+            )
 
-        header =  '╔═══════╦═══════════╦═══════╦═══════════════════════════════════════╗\n' \
-                  '║ Rank  ║ XP        ║ Level ║ Name                                  ║\n' \
-                  '╠═══════╬═══════════╬═══════╬═══════════════════════════════════════╣\n'
+        entries = []
 
-        footer =  '\n' \
-                  '║       ║           ║       ║                                       ║\n' \
-                 f'║ {self.bot.user_manager.rank(ctx.author.id):<5} ║ {ctx.user_config.xp:<9} ║ {ctx.user_config.level:<5} ║ {str(ctx.author):<37} ║\n' \
-                  '╚═══════╩═══════════╩═══════╩═══════════════════════════════════════╝\n\n'
+        for record in leaderboard:
 
-        entries = [
-            f'║ {index + 1:<5} ║ {user_config.xp:<9} ║ {user_config.level:<5} ║ {utils.name(person=self.bot.get_user(user_config.id), guild=ctx.guild):<37} ║'
-            for index, user_config in enumerate(leaderboard)
-        ]
+            if not (member := ctx.guild.get_member(record["user_id"])):
+                continue
 
-        await ctx.paginate(entries=entries, per_page=10, header=header, footer=footer, codeblock=True)
+            entries.append(f"║ {record['rank']:<5} ║ {record['xp']:<9} ║ {utils.level(record['xp']):<5} ║ {member.nick or member.name:<37} ║")
 
+        author_stats = f"║ {await self.bot.user_manager.rank(guild_id=ctx.guild.id, user_id=ctx.author.id):<5} ║ {member_config['xp']:<9} " \
+                       f"║ {utils.level(member_config['xp']):<5} ║ {ctx.author.nick or ctx.author.name:<37} ║\n"
 
-def setup(bot: SkeletonClique) -> None:
-    bot.add_cog(Economy(bot=bot))
+        await ctx.paginate(
+            entries=entries,
+            per_page=10,
+            header="╔═══════╦═══════════╦═══════╦═══════════════════════════════════════╗\n"
+                   "║ Rank  ║ XP        ║ Level ║ Name                                  ║\n"
+                   "╠═══════╬═══════════╬═══════╬═══════════════════════════════════════╣\n",
+            footer=f"\n"
+                   f"║       ║           ║       ║                                       ║\n"
+                   f"╠═══════╬═══════════╬═══════╬═══════════════════════════════════════╣\n"
+                   f"{author_stats}"
+                   f"╚═══════╩═══════════╩═══════╩═══════════════════════════════════════╝\n",
+            codeblock=True
+        )
