@@ -1,18 +1,24 @@
-import collections
+# Future
+from __future__ import annotations
 
+# Standard Library
+import collections
+import time
+
+# Packages
 import discord
 import psutil
 from discord.ext import commands
 from discord.ext.alternatives import guild_converter
 
-import time
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
 from utilities import context, converters, exceptions, utils
 
 
 class Information(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
         self.FEATURES = {
@@ -373,5 +379,5 @@ class Information(commands.Cog):
         await ctx.reply(embed=embed)
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Information(bot=bot))

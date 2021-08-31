@@ -1,11 +1,18 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 import random
 from inspect import Parameter
 from typing import Literal, Optional
 
+# Packages
 from discord.ext import commands
 
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
 from utilities import context, converters, exceptions, imaging, utils
+
 
 _old_transform = commands.Command.transform
 
@@ -27,7 +34,7 @@ commands.Command.transform = _transform
 
 class Images(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.max_concurrency(1, per=commands.cooldowns.BucketType.member)
@@ -657,5 +664,5 @@ class Images(commands.Cog):
             await ctx.reply(embed=embed)
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Images(bot=bot))

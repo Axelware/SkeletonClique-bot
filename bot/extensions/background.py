@@ -1,11 +1,16 @@
+# Future
+from __future__ import annotations
+
+# Packages
 from discord.ext import commands, tasks
 
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
 
 
 class Background(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
         self.clear.start()
 
@@ -24,5 +29,5 @@ class Background(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Background(bot=bot))

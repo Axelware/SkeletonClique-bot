@@ -1,11 +1,18 @@
-import collections
+# Future
+from __future__ import annotations
 
+# Standard Library
+import collections
+import time
+
+# Packages
 import discord
 import prometheus_client
 from discord.ext import commands, tasks
 
-import time
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
+
 
 OP_TYPES = {
     0:  'DISPATCH',
@@ -27,7 +34,7 @@ OP_TYPES = {
 # noinspection PyUnusedLocal
 class Prometheus(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
         self.ready = False
@@ -156,5 +163,5 @@ class Prometheus(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(cog=Prometheus(bot=bot))

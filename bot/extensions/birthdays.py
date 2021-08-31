@@ -1,14 +1,19 @@
+# Future
+from __future__ import annotations
+
+# Packages
 import discord
 import pendulum
 from discord.ext import commands
 
-from bot import SemiBotomatic
+# My stuff
+from core.bot import SkeletonClique
 from utilities import context, converters, exceptions, utils
 
 
 class Birthdays(commands.Cog):
 
-    def __init__(self, bot: SemiBotomatic) -> None:
+    def __init__(self, bot: SkeletonClique) -> None:
         self.bot = bot
 
     @commands.group(name='birthday', aliases=['birthdays', 'bd'], invoke_without_command=True)
@@ -146,5 +151,5 @@ class Birthdays(commands.Cog):
         await ctx.reply(embed=embed)
 
 
-def setup(bot: SemiBotomatic) -> None:
+def setup(bot: SkeletonClique) -> None:
     bot.add_cog(Birthdays(bot=bot))
