@@ -1,5 +1,10 @@
+# Future
+from __future__ import annotations
+
+# Packages
 import discord
 
+# My stuff
 from core import config
 
 
@@ -20,4 +25,4 @@ INVITE_LINK = discord.utils.oauth_url(client_id=config.BOT_ID, permissions=PERMI
 INVITE_LINK_NO_PERMISSIONS = discord.utils.oauth_url(client_id=config.BOT_ID)
 
 SUPPORT_LINK = "https://discord.gg/w9f6NkQbde"
-GITHUB_LINK = "https://github.com/Axelancerr/Life-bot"
+GITHUB_LINK = "https://github.com/SkeletonCliqueDiscord/SkeletonClique-bot"
