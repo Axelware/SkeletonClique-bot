@@ -193,7 +193,7 @@ class Player(obsidian.ObsidianPlayer):
             embed.add_field(
                 name="Player info:",
                 value=f"`Paused:` {self.paused}\n"
-                      f"`Loop mode:` {self.queue.loop_mode.value.title()}\n"
+                      f"`Loop mode:` {self.queue.loop_mode.name.title()}\n"
                       f"`Filter:` {getattr(self.filter, 'name', None)}\n"
             ).add_field(
                 name="Track info:",
