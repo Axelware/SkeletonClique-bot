@@ -1,5 +1,7 @@
+# Standard Library
 from typing import Optional, Type, Union
 
+# My stuff
 from core.bot import SkeletonClique
 from utilities.spotify import exceptions, objects
 

@@ -1,4 +1,6 @@
+# Standard Library
 from urllib.parse import quote
+
 
 BASE_ENDPOINT = 'https://api.spotify.com/v1'
 

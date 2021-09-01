@@ -1,5 +1,7 @@
+# Standard Library
 from typing import Literal, Optional
 
+# My stuff
 from utilities.spotify.objects import album, artist, base, image, user
 
 
