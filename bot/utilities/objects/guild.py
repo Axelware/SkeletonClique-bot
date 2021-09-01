@@ -29,7 +29,6 @@ class GuildConfig:
         self._created_at: pendulum.DateTime = pendulum.instance(data["created_at"], tz="UTC")
 
         self._embed_size: enums.EmbedSize = enums.EmbedSize(data["embed_size"])
-        self._prefixes: list[str] = data["prefixes"]
 
         self._tags: dict[str, objects.Tag] = {}
 
@@ -54,10 +53,6 @@ class GuildConfig:
     def embed_size(self) -> enums.EmbedSize:
         return self._embed_size
 
-    @property
-    def prefixes(self) -> list[str]:
-        return self._prefixes
-
     #
 
     @property
@@ -70,19 +65,6 @@ class GuildConfig:
 
         data = await self.bot.db.fetchrow("UPDATE guilds SET embed_size = $1 WHERE id = $2 RETURNING embed_size", embed_size.value, self.id)
         self._embed_size = enums.EmbedSize(data["embed_size"])
-
-    async def change_prefixes(self, prefix: Optional[str] = None, *, operation: enums.Operation) -> None:
-
-        if operation == enums.Operation.RESET:
-            data = await self.bot.db.fetchrow("UPDATE guilds SET prefixes = $1 WHERE id = $2 RETURNING prefixes", [], self.id)
-        elif operation == enums.Operation.ADD:
-            data = await self.bot.db.fetchrow("UPDATE guilds SET prefixes = array_append(prefixes, $1) WHERE id = $2 RETURNING prefixes", prefix, self.id)
-        elif operation == enums.Operation.REMOVE:
-            data = await self.bot.db.fetchrow("UPDATE guilds SET prefixes = array_remove(prefixes, $1) WHERE id = $2 RETURNING prefixes", prefix, self.id)
-        else:
-            raise ValueError(f"'change_prefixes' expected one of {enums.Operation.ADD, enums.Operation.REMOVE, enums.Operation.RESET}, got '{operation!r}'.")
-
-        self._prefixes = data["prefixes"]
 
     # Caching
 
