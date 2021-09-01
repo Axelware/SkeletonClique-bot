@@ -174,7 +174,8 @@ async def request_image_bytes(*, session: aiohttp.ClientSession, url: str) -> by
 
         if yarl.URL(url).host in COMMON_GIF_SITES:
             page = bs4.BeautifulSoup(await request.text(), features="html.parser")
-            if (tag := page.find("meta", property="og:url")) is not None:
+            tag = page.find("meta", property="og:url")
+            if tag is not None:
                 return await request_image_bytes(session=session, url=tag["content"])
 
         if request.status != 200:

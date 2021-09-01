@@ -1,12 +1,21 @@
-from typing import Literal
+# Future
+from __future__ import annotations
 
+# Standard Library
+from typing import Callable, Literal, TypeVar
+
+# Packages
 from discord.ext import commands
 
+# My stuff
 from core import colours, emojis
 from utilities import context, exceptions
 
 
-def is_author_connected(same_channel: bool):
+T = TypeVar("T")
+
+
+def is_author_connected(same_channel: bool) -> Callable[[T], T]:
 
     async def predicate(ctx: context.Context) -> Literal[True]:
 

@@ -22,7 +22,7 @@ class PersonConverter(commands.Converter):
 
         if not person:
             try:
-                person = await commands.Converter().convert(ctx, argument)
+                person = await commands.UserConverter().convert(ctx, argument)
             except commands.UserNotFound:
                 pass
 

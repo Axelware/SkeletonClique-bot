@@ -182,7 +182,7 @@ class Player(obsidian.ObsidianPlayer):
 
             if not self.queue.is_empty():
 
-                entries = [f"`{index + 1}.` [{entry.title}]({entry.uri})" for index, entry in enumerate(self.queue[:5])]
+                entries = [f"`{index + 1}.` [{entry.title}]({entry.uri})" for index, entry in enumerate(list(self.queue)[:5])]
                 if len(self.queue) > 5:
                     entries.append(f"`...`\n`{len(self.queue)}.` [{self.queue[-1].title}]({self.queue[-1].uri})")
 

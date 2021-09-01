@@ -1,6 +1,6 @@
 [tool.pyright]
 include = ["bot"]
-exclude = []
+exclude = ["bot/utilities/spotify/", "bot/extensions/events.py"]
 ignore = []
 strict = []
 venvPath = "venv"
