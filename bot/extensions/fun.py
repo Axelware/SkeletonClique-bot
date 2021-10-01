@@ -236,9 +236,9 @@ class Fun(commands.Cog):
     @commands.command(name="spooky", aliases=["halloween"])
     async def spooky(self, ctx: context.Context) -> None:
 
-        hearts = ["\U0001f9e1", "\U0001f49a", "\U0001f5a4"]
+        hearts = ["\U0001f9e1", "\U0001f49a"]
         charachters = ["\U0001f47b", "\U0001f921", "\U0001f47a", "\U0001f479", "\U0001f47d", "\U00000020"]
-        animals = ["\U0001f577", "\U0001fab1", "\U0001f987"]
+        animals = ["\U0001fab1", "\U0001f987"]
         items = ["\U0001f578", "\U0001f383", "\U0001f36c", "\U0001f480", "\U00002620"]
 
         heart = random.choice(hearts)
@@ -246,7 +246,5 @@ class Fun(commands.Cog):
         animal = random.choice(animals)
         item = random.choice(items)
 
-        heart_or_charachter = random.choice([heart, charachter])
-        animal_or_item = random.choice([animal, item])
-
-        await ctx.author.edit(nick=f"{heart_or_charachter} {ctx.author.nick} {animal_or_item}")
+        await ctx.author.edit(nick=f"{heart} {charachter} {ctx.author.name} {animal} {item}")
+        await ctx.send("\U0001f47b")
