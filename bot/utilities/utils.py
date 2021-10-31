@@ -243,7 +243,7 @@ async def upload_file(session: aiohttp.ClientSession, *, file_bytes: bytes | io.
     data = aiohttp.FormData()
     data.add_field("file", value=file_bytes, filename=f"file.{file_format.lower()}")
 
-    async with session.post("https://cdn.axelancerr.xyz/api/media", headers={"Authorization": config.AXEL_WEB_TOKEN}, data=data) as response:
+    async with session.post("https://cdn.axelancerr.xyz/api/v1/files", headers={"Authorization": config.CDN_TOKEN}, data=data) as response:
 
         if response.status == 413:
             raise exceptions.EmbedError(
@@ -263,7 +263,7 @@ async def safe_content(mystbin_client: mystbin.Client, content: str, *, syntax: 
         return content
 
     try:
-        paste = await mystbin_client.post(content, syntax=syntax)
+        paste = await mystbin_client.post(content, syntax=syntax)  # type: ignore
         return paste.url
     except mystbin.APIError:
         return content[:max_characters]
@@ -274,13 +274,13 @@ async def safe_content(mystbin_client: mystbin.Client, content: str, *, syntax: 
 
 class _MissingSentinel:
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Literal[False]:
         return False
 
-    def __bool__(self):
+    def __bool__(self) -> Literal[False]:
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "..."
 
 
